@@ -1,0 +1,5 @@
+@import './src/common/styles/variables.module';
+
+.controlPanel {
+  height: $controlPanelHeight;
+}

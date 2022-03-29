@@ -1,0 +1,11 @@
+$controlPanelHeight: 80px;
+
+@mixin setFlex($justify: center, $align: center) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+:export {
+  controlPanelHeight: $controlPanelHeight,
+}

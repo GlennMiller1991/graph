@@ -1,0 +1,10 @@
+@import './../src/common/styles/variables.module';
+
+.app {
+  height: 100vh;
+  background-color: antiquewhite;
+  .controlPanel {
+    height: $controlPanelHeight;
+  }
+}
+

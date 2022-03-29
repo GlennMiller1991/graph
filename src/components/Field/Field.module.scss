@@ -1,0 +1,10 @@
+@import "./src/common/styles/variables.module";
+
+.field {
+  height: calc(100vh - #{$controlPanelHeight});
+  background-color: aliceblue;
+  .svgField {
+    width: 100%;
+    height: 100%;
+  }
+}
