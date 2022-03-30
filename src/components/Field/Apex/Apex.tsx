@@ -27,7 +27,6 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
-    // const [apexPosition, setApexPosition] = useState<{ cx: number, cy: number }>({cx: 0, cy: 0})
     const apexPosition = useRef({cx: 0, cy: 0})
 
     const mouseMoveHandler = useCallback((event: MouseEvent) => {

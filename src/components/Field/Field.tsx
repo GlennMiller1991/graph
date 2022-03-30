@@ -7,7 +7,6 @@ import {ApexLink} from "./ApexLink/ApexLink";
 
 export const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
-
 export type TLink = string
 export type TApexProperties = {
     id: string,
@@ -18,10 +17,9 @@ export type TApexProperties = {
     style: any,
 }
 
+
 export const Field: React.FC = React.memo(() => {
     // state
-    // scale of the field
-    const [scale, setScale] = useState<number>(1)
 
     // current apexes on the svg
     const [apexes, setApexes] = useState<TApexProperties[]>([])
@@ -97,10 +95,28 @@ export const Field: React.FC = React.memo(() => {
             <svg className={styles.svgField}
                  onDoubleClick={onDoubleClickHandler}
                  onWheel={(event) => {
-                     setScale((scale) => {
-                         let newScale = scale + (event.deltaY * 0.00001)
-                         return newScale
-                     })
+                     let newApexes
+                     if (event.deltaY > 0) {
+                         newApexes = apexes.map((apex) => {
+                             return {
+                                 ...apex,
+                                 cx: apex.cx * 1.01,
+                                 cy: apex.cy * 1.01,
+                                 r: apex.r * 1.01,
+                             }
+                         })
+                     } else {
+                         newApexes = apexes.map((apex) => {
+                             return {
+                                 ...apex,
+                                 cx: apex.cx / 1.01,
+                                 cy: apex.cy / 1.01,
+                                 r: apex.r / 1.01,
+                             }
+                         })
+                     }
+
+                     setApexes(newApexes)
                  }}>
                 {
                     apexes.map((apex, key) => {
