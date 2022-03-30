@@ -72,6 +72,7 @@ export const Field: React.FC = React.memo(() => {
 
     }, [activeApex])
     const deleteApexById = useCallback((apexId: string) => {
+        setActiveApex('')
         setApexes((apexes) => {
             return apexes.filter((apex) => apex.id !== apexId)
         })

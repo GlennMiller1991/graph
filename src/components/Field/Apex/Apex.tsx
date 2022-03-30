@@ -63,6 +63,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                     }}
                     onDoubleClick={(event) => {
                         event.stopPropagation()
+                        debugger
                         if (!activeApex) {
                             setActiveApex(apex.id)
                         } else {
