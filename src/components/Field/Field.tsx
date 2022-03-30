@@ -5,7 +5,7 @@ import {v1} from "uuid";
 import {Apex} from "./Apex/Apex";
 import {ApexLink} from "./ApexLink/ApexLink";
 
-const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
+export const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
 
 export type TLink = string

@@ -1,7 +1,8 @@
-import React from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import styles from "../Field.module.scss";
-import {TApexProperties} from "../Field";
+import {controlPanelHeight, TApexProperties} from "../Field";
 
+type TMoveStatus = false | true
 type TApexProps = {
     apex: TApexProperties,
     activeApex: string,
@@ -24,6 +25,20 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           deleteApexById,
                                                           onMouseMoveHandler,
                                                       }) => {
+
+    const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
+    // const [apexPosition, setApexPosition] = useState<{ cx: number, cy: number }>({cx: 0, cy: 0})
+    const apexPosition = useRef({cx: 0, cy: 0})
+
+    const mouseMoveHandler = useCallback((event: MouseEvent) => {
+        if (Math.abs(event.clientX - apexPosition.current.cx) > 20 ||
+            Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy) > 20) {
+            movingApex.current = apex.id
+            onMouseMoveHandler(event)
+            setMoveStatus(true)
+        }
+    }, [movingApex, onMouseMoveHandler, apex.id])
+
     return (
         <>
             <circle className={`${styles.apex} ${activeApex === apex.id ? styles.activeApex : ''}`}
@@ -31,22 +46,28 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                     cy={String(apex.cy)}
                     r={String(apex.r)}
                     onMouseDown={() => {
-                        movingApex.current = apex.id
+                        apexPosition.current.cx = apex.cx
+                        apexPosition.current.cy = apex.cy
                         //@ts-ignore
-                        document.addEventListener('mousemove', onMouseMoveHandler)
+                        document.addEventListener('mousemove', mouseMoveHandler)
                     }}
                     onMouseUp={() => {
-                        movingApex.current = ''
-                        //@ts-ignore
-                        document.removeEventListener('mousemove', onMouseMoveHandler)
+                        if (moveStatus) {
+                            // if drag - stop drag
+                            setMoveStatus(false)
+                            movingApex.current = ''
+                        }
+                        document.removeEventListener('mousemove', mouseMoveHandler)
                     }}
                     onDoubleClick={(event) => {
                         event.stopPropagation()
-                        setActiveApex(
-                            apex.id === activeApex ?
-                                '' :
-                                apex.id
-                        )
+                        if (!activeApex) {
+                            setActiveApex(apex.id)
+                        } else {
+                            if (activeApex === apex.id) {
+                                setActiveApex('')
+                            }
+                        }
                     }}
                     onClick={() => {
                         if (activeApex && activeApex !== apex.id) {
