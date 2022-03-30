@@ -89,6 +89,11 @@ export const Field: React.FC = React.memo(() => {
             return newApexes
         })
     }, [activeApex])
+    const updateApexR = useCallback((apexId: string, size: number) => {
+        setApexes((apexes) => {
+            return apexes.map((apex) => apex.id === apexId ? {...apex, r: apex.r + size} : apex)
+        })
+    }, [])
 
     return (
         <div className={styles.field}>
@@ -145,6 +150,7 @@ export const Field: React.FC = React.memo(() => {
                                     })
                                 }
                                 <Apex key={key}
+                                      updateApexR={updateApexR}
                                       movingApex={movingApex}
                                       activeApex={activeApex}
                                       apex={apex}

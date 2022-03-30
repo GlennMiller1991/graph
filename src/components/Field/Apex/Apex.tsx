@@ -12,7 +12,7 @@ type TApexProps = {
     setActiveApex: (apexId: string) => void,
     updateApexLinks: (apexId: string) => void,
     deleteApexById: (apexId: string) => void,
-
+    updateApexR: (apexId: string, size: number) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
 }
 
@@ -24,6 +24,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           updateApexLinks,
                                                           deleteApexById,
                                                           onMouseMoveHandler,
+                                                          updateApexR,
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
@@ -73,6 +74,20 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                     onClick={() => {
                         if (activeApex && activeApex !== apex.id) {
                             updateApexLinks(apex.id)
+                        }
+                    }}
+                    onWheel={(event) => {
+                        if (activeApex) {
+                            event.stopPropagation()
+                            if (activeApex === apex.id ) {
+                                if (apex.r > 2 && apex.r < 50) {
+                                    updateApexR(apex.id, event.deltaY > 0 ? 1 : -1)
+                                } else if (apex.r <= 2) {
+                                    updateApexR(apex.id, event.deltaY > 0 ? 1 : 0)
+                                } else if (apex.r >= 50) {
+                                    updateApexR(apex.id, event.deltaY > 0 ? 0 : -1)
+                                }
+                            }
                         }
                     }}
             />
