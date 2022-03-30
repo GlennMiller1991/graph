@@ -1,15 +1,11 @@
 import React, {useCallback, useState, WheelEvent, MouseEvent, useRef} from "react";
 import styles from './Field.module.scss'
 import variables from './../../common/styles/variables.module.scss';
-import {Apex} from "./Apex/Apex";
 import {v1} from "uuid";
 
 const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
-export type TLine = {
-    start: string,
-    end: string,
-}
+
 export type TLink = string
 export type TApexProperties = {
     id: string,
@@ -19,93 +15,6 @@ export type TApexProperties = {
     links: Array<TLink>,
     style: any,
 }
-
-type TFieldProps = {
-    currentEditingId: string | undefined,
-    setApexToEditBar: (apex: TApexProperties) => void,
-}
-// export const Field: React.FC = React.memo(() => {
-//     // state
-//     // scale of field
-//     const [scale, setScale] = useState(1)
-//
-//     // active apex
-//     const [activeApex, setActiveApex] = useState<TApexProperties | undefined>(undefined)
-//
-//     // apexes on the field
-//     const [apexes, setApexes] = useState<Array<TApexProperties>>([])
-//
-//     // lines on the field
-//     const [lines, setLines] = useState<TLine[]>([])
-//
-//     // callbacks
-//     const onWheelHandler = (event: WheelEvent<SVGSVGElement>) => {
-//         // scale corrector
-//         setScale(scale + event.deltaY * 0.0001)
-//     }
-//     const onDoubleClickHandler = useCallback((event: MouseEvent<SVGSVGElement>) => {
-//         // create new apex on the field
-//         setApexes([
-//             ...apexes,
-//             {
-//                 r: 15,
-//                 cx: event.clientX,
-//                 cy: event.clientY - controlPanelHeight,
-//                 id: v1(),
-//                 links: [],
-//                 style: {},
-//             }
-//         ])
-//     }, [apexes])
-//     const changeApexPosition = useCallback((apexID: string, cx: number, cy: number) => {
-//         // find apex by id and change cx/cy if found
-//         let apex = apexes.find((apex) => {
-//             return apex.id === apexID
-//         })
-//         if (apex) {
-//             setApexes(apexes.map((apex) => apex.id === apexID ? {...apex, cx, cy} : apex))
-//         }
-//     }, [apexes])
-//     const setApexActive = useCallback((apexID: string) => {
-//         setActiveApex(apexes.find((apex) => apex.id === apexID))
-//     }, [apexes])
-//     const updateApexLinks = (apexID: string) => {
-//         setApexes(
-//             apexes.map((apex) => apex.id === activeApex?.id ?
-//                 {
-//                     ...apex,
-//                     // is new link already exist ???
-//                     links: [...apex.links, apexID]
-//                 } :
-//                 apex)
-//         )
-//         setActiveApex(undefined)
-//     }
-//
-//     return (
-//         <div className={styles.field}>
-//             <svg className={styles.svgField}
-//                  onWheel={onWheelHandler}
-//                  onDoubleClick={onDoubleClickHandler}>
-//                 {
-//                     apexes.map((apex, key) => {
-//                         return (
-//                             <Apex key={key}
-//                                   apexes={apexes}
-//                                   scale={scale}
-//                                   apexProperties={apex}
-//                                   setApexActive={setApexActive}
-//                                   updateApexLinks={updateApexLinks}
-//                                   activeApexId={activeApex ? activeApex.id : ''}
-//                                   changePosition={changeApexPosition}
-//                             />
-//                         )
-//                     })
-//                 }
-//             </svg>
-//         </div>
-//     )
-// })
 
 export const Field: React.FC = React.memo(() => {
 
@@ -161,6 +70,11 @@ export const Field: React.FC = React.memo(() => {
         })
 
     }, [activeApex])
+    const deleteApexById = useCallback((apexId: string) => {
+        setApexes((apexes) => {
+            return apexes.filter((apex) => apex.id !== apexId)
+        })
+    }, [])
 
     return (
         <div className={styles.field}>
@@ -170,15 +84,30 @@ export const Field: React.FC = React.memo(() => {
 
                         return (
                             <g key={key}>
-                                <circle className={styles.apex}
+                                {
+                                    apex.links.map((link, key) => {
+                                        let linkApex = apexes.find(
+                                            (apex) => apex.id === link
+                                        )
+                                        if (linkApex) {
+                                            let [cx, cy] = [linkApex.cx, linkApex.cy]
+                                            return (
+                                                <line key={key}
+                                                      stroke={'black'}
+                                                      strokeWidth={3}
+                                                      x1={apex.cx} y1={apex.cy}
+                                                      x2={cx} y2={cy}
+                                                      pointerEvents={'none'}
+                                                />
+                                            )
+                                        }
+                                        return ''
+                                    })
+                                }
+                                <circle className={`${styles.apex} ${activeApex === apex.id ? styles.activeApex : ''}`}
                                         cx={String(apex.cx)}
                                         cy={String(apex.cy)}
                                         r={String(apex.r)}
-                                        fill={
-                                            activeApex === apex.id ?
-                                                'green' :
-                                                'black'
-                                        }
                                         onMouseDown={() => {
                                             movingApex.current = apex.id
                                             //@ts-ignore
@@ -204,24 +133,19 @@ export const Field: React.FC = React.memo(() => {
                                         }}
                                 />
                                 {
-                                    apex.links.map((link, key) => {
-                                        let linkApex = apexes.find(
-                                            (apex) => apex.id === link
-                                        )
-                                        if (linkApex) {
-                                            let [cx, cy] = [linkApex.cx, linkApex.cy]
-                                            return (
-                                                <line key={key}
-                                                      stroke={'black'}
-                                                      strokeWidth={3}
-                                                      x1={apex.cx} y1={apex.cy}
-                                                      x2={cx} y2={cy}
-                                                      pointerEvents={'none'}
-                                                />
-                                            )
-                                        }
-                                        return ''
-                                    })
+                                    activeApex === apex.id &&
+                                    <g className={styles.deleteGroup}>
+                                        <path className={styles.deleteSign}
+                                              strokeWidth={1}
+                                              d={`M${apex.cx + apex.r} ${apex.cy - apex.r} l6 -6 m-6 0 l6 6`}/>
+                                        <circle className={styles.deleteBackground}
+                                                cx={apex.cx + apex.r + 3}
+                                                cy={apex.cy - apex.r - 3}
+                                                r={8}
+                                                onClick={() => {
+                                                    deleteApexById(apex.id)
+                                                }}/>
+                                    </g>
                                 }
                             </g>
                         )

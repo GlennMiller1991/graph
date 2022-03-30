@@ -8,3 +8,20 @@
     height: 100%;
   }
 }
+
+.activeApex {
+  fill: green;
+}
+
+.deleteGroup {
+  z-index: 1000;
+
+  .deleteSign {
+    stroke: #857272;
+  }
+
+  .deleteBackground {
+    cursor: pointer;
+    fill: rgba(201, 160, 160, 0.7);
+  }
+}
