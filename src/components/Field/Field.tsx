@@ -1,7 +1,9 @@
-import React, {useCallback, useState, MouseEvent, useRef} from "react";
+import React, {MouseEvent, useCallback, useRef, useState} from "react";
 import styles from './Field.module.scss'
 import variables from './../../common/styles/variables.module.scss';
 import {v1} from "uuid";
+import {Apex} from "./Apex/Apex";
+import {ApexLink} from "./ApexLink/ApexLink";
 
 const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
@@ -17,7 +19,6 @@ export type TApexProperties = {
 }
 
 export const Field: React.FC = React.memo(() => {
-
     // state
     // current apexes on the svg
     const [apexes, setApexes] = useState<TApexProperties[]>([])
@@ -103,80 +104,30 @@ export const Field: React.FC = React.memo(() => {
                                         if (linkApex) {
                                             let [cx, cy, r] = [linkApex.cx, linkApex.cy, linkApex.r]
                                             return (
-                                                <g key={key}>
-                                                    <line stroke={'black'}
-                                                          strokeWidth={3}
-                                                          x1={apex.cx} y1={apex.cy}
-                                                          x2={cx} y2={cy}
-                                                          pointerEvents={'none'}
-                                                    />
-                                                    {
-                                                        activeApex === apex.id &&
-                                                        <g className={styles.deleteGroup}>
-                                                            <path className={styles.deleteSign}
-                                                                  strokeWidth={2}
-                                                                  stroke={'red'}
-                                                                  d={`M${cx + (r - 3)} ${cy - (r - 3)} l6 -6 m-6 0 l6 6`}
-                                                                  />
-                                                            <circle className={styles.deleteBackground}
-                                                                    cx={cx + r}
-                                                                    cy={cy - r}
-                                                                    r={8}
-                                                                    onClick={() => {
-                                                                        deleteApexLink(link)
-                                                                    }}/>
-                                                        </g>
-                                                    }
-                                                </g>
+                                                <ApexLink key={key}
+                                                          apex={apex}
+                                                          activeApex={activeApex}
+                                                          deleteApexLink={deleteApexLink}
+                                                          link={link}
+                                                          cx={cx}
+                                                          cy={cy}
+                                                          r={r}
+                                                />
                                             )
                                         }
                                         return ''
                                     })
                                 }
-                                <circle className={`${styles.apex} ${activeApex === apex.id ? styles.activeApex : ''}`}
-                                        cx={String(apex.cx)}
-                                        cy={String(apex.cy)}
-                                        r={String(apex.r)}
-                                        onMouseDown={() => {
-                                            movingApex.current = apex.id
-                                            //@ts-ignore
-                                            document.addEventListener('mousemove', onMouseMoveHandler)
-                                        }}
-                                        onMouseUp={() => {
-                                            movingApex.current = ''
-                                            //@ts-ignore
-                                            document.removeEventListener('mousemove', onMouseMoveHandler)
-                                        }}
-                                        onDoubleClick={(event) => {
-                                            event.stopPropagation()
-                                            setActiveApex(
-                                                apex.id === activeApex ?
-                                                    '' :
-                                                    apex.id
-                                            )
-                                        }}
-                                        onClick={() => {
-                                            if (activeApex && activeApex !== apex.id) {
-                                                updateApexLinks(apex.id)
-                                            }
-                                        }}
+                                <Apex key={key}
+                                      movingApex={movingApex}
+                                      activeApex={activeApex}
+                                      apex={apex}
+                                      updateApexLinks={updateApexLinks}
+                                      deleteApexById={deleteApexById}
+                                    //@ts-ignore
+                                      onMouseMoveHandler={onMouseMoveHandler}
+                                      setActiveApex={setActiveApex}
                                 />
-                                {
-                                    activeApex === apex.id &&
-                                    <g className={styles.deleteGroup}>
-                                        <path className={styles.deleteSign}
-                                              strokeWidth={1}
-                                              stroke={'#857272'}
-                                              d={`M${apex.cx + apex.r} ${apex.cy - apex.r} l6 -6 m-6 0 l6 6`}/>
-                                        <circle className={styles.deleteBackground}
-                                                cx={apex.cx + apex.r + 3}
-                                                cy={apex.cy - apex.r - 3}
-                                                r={8}
-                                                onClick={() => {
-                                                    deleteApexById(apex.id)
-                                                }}/>
-                                    </g>
-                                }
                             </g>
                         )
                     })
