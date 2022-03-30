@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from "react";
 import styles from './Apex.module.scss';
 import variables from './../../../common/styles/variables.module.scss';
-import {TApexProperties} from "../Field";
+import {TApexProperties, TLink} from "../Field";
 
 
 const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
@@ -13,6 +13,7 @@ type TApexPosition = {
 
 type TApexProps = {
     scale: number,
+    apexes: TApexProperties[],
     changePosition: (apexID: string, cx: number, cy: number) => void,
     apexProperties: TApexProperties,
     setApexActive: (apexID: string) => void,
@@ -20,10 +21,9 @@ type TApexProps = {
     updateApexLinks: (apexID: string) => void,
 }
 export const Apex: React.FC<TApexProps> = React.memo((
-    // need to refactor mouse down / mouse up
-
     {
         scale,
+        apexes,
         changePosition,
         apexProperties,
         setApexActive,
@@ -70,23 +70,23 @@ export const Apex: React.FC<TApexProps> = React.memo((
                         }
                     }}
             />
-            {/*{*/}
-            {/*    apexProperties.links &&*/}
-            {/*    apexProperties.links.map((link, key) => {*/}
-            {/*        return <line key={key}*/}
-            {/*                     stroke={'black'}*/}
-            {/*                     x1={apexPosition.cx} y1={apexPosition.cy}*/}
-            {/*                     x2={link.cx} y2={link.cy}/>*/}
-            {/*    })*/}
-            {/*}*/}
             {
-                activeApexId === apexProperties.id &&
-                <line stroke={'black'}
-                      pointerEvents={'none'}
-                      strokeWidth={3}
-                      x1={apexPosition.cx} y1={apexPosition.cy}
-                      x2={apexProperties.cx + 10} y2={apexProperties.cy + 10}
-                />
+                apexProperties.links.length &&
+                apexProperties.links.map((link, key) => {
+                    let linkApex = apexes.find((apex) => apex.id === link)
+                    if (linkApex) {
+                        let {cx, cy, ...rest} = linkApex
+                        return (
+                            <line key={key}
+                                  stroke={'black'}
+                                  strokeWidth={3}
+                                  x1={apexPosition.cx} y1={apexPosition.cy}
+                                  x2={cx} y2={cy}/>
+                        )
+                    } else {
+                        return ''
+                    }
+                })
             }
         </g>
     )

@@ -70,14 +70,15 @@ export const Field: React.FC = React.memo(() => {
         setActiveApex(apexes.find((apex) => apex.id === apexID))
     }, [apexes])
     const updateApexLinks = (apexID: string) => {
-        setLines([
-            ...lines,
-            {
-                //@ts-ignore
-                start: activeApex.id,
-                end: apexID,
-            }
-        ])
+        setApexes(
+            apexes.map((apex) => apex.id === activeApex?.id ?
+                {
+                    ...apex,
+                    // is new link already exist ???
+                    links: [...apex.links, apexID]
+                } :
+                apex)
+        )
         setActiveApex(undefined)
     }
 
@@ -90,6 +91,7 @@ export const Field: React.FC = React.memo(() => {
                     apexes.map((apex, key) => {
                         return (
                             <Apex key={key}
+                                  apexes={apexes}
                                   scale={scale}
                                   apexProperties={apex}
                                   setApexActive={setApexActive}
@@ -98,27 +100,6 @@ export const Field: React.FC = React.memo(() => {
                                   changePosition={changeApexPosition}
                             />
                         )
-                    })
-                }
-                {
-                    lines.length &&
-                    lines.map((line, key) => {
-                        let startApex = apexes.find((apex) => {
-                            return apex.id === line.start
-                        })
-                        let endApex = apexes.find((apex) => {
-                            return apex.id === line.end
-                        })
-                        if (startApex && endApex) {
-                            return (
-                                <line key={key} stroke={'black'}
-                                      strokeWidth={3}
-                                      x1={startApex.cx} y1={startApex.cy}
-                                      x2={endApex.cx} y2={endApex.cy}
-                                />
-                            )
-                        } else {
-                        }
                     })
                 }
             </svg>
