@@ -102,7 +102,6 @@ export const Field: React.FC = React.memo(() => {
                                         )
                                         if (linkApex) {
                                             let [cx, cy, r] = [linkApex.cx, linkApex.cy, linkApex.r]
-                                            console.log(cx, cy)
                                             return (
                                                 <g key={key}>
                                                     <line stroke={'black'}
