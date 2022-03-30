@@ -78,6 +78,7 @@ export const Apex: React.FC<TApexProps> = React.memo((
                         let {cx, cy, ...rest} = linkApex
                         return (
                             <line key={key}
+                                  pointerEvents={'none'}
                                   stroke={'black'}
                                   strokeWidth={3}
                                   x1={apexPosition.cx} y1={apexPosition.cy}
