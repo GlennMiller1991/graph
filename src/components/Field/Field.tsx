@@ -20,6 +20,9 @@ export type TApexProperties = {
 
 export const Field: React.FC = React.memo(() => {
     // state
+    // scale of the field
+    const [scale, setScale] = useState<number>(1)
+
     // current apexes on the svg
     const [apexes, setApexes] = useState<TApexProperties[]>([])
 
@@ -91,7 +94,14 @@ export const Field: React.FC = React.memo(() => {
 
     return (
         <div className={styles.field}>
-            <svg className={styles.svgField} onDoubleClick={onDoubleClickHandler}>
+            <svg className={styles.svgField}
+                 onDoubleClick={onDoubleClickHandler}
+                 onWheel={(event) => {
+                     setScale((scale) => {
+                         let newScale = scale + (event.deltaY * 0.00001)
+                         return newScale
+                     })
+                 }}>
                 {
                     apexes.map((apex, key) => {
                         return (

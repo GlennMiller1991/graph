@@ -33,6 +33,8 @@ export const Apex: React.FC<TApexProps> = React.memo(({
     const mouseMoveHandler = useCallback((event: MouseEvent) => {
         if (Math.abs(event.clientX - apexPosition.current.cx) > 20 ||
             Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy) > 20) {
+            apexPosition.current.cx = -100
+            apexPosition.current.cy = -100
             movingApex.current = apex.id
             onMouseMoveHandler(event)
             setMoveStatus(true)
