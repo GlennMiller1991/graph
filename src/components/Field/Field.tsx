@@ -1,4 +1,4 @@
-import React, {useCallback, useState, WheelEvent, MouseEvent, useRef} from "react";
+import React, {useCallback, useState, MouseEvent, useRef} from "react";
 import styles from './Field.module.scss'
 import variables from './../../common/styles/variables.module.scss';
 import {v1} from "uuid";
@@ -59,7 +59,6 @@ export const Field: React.FC = React.memo(() => {
         setApexes((apexes) => {
             return apexes.map(
                 (apex) => {
-                    console.log(apex)
                     return apex.id === activeApex ?
                         {
                             ...apex,
@@ -75,13 +74,25 @@ export const Field: React.FC = React.memo(() => {
             return apexes.filter((apex) => apex.id !== apexId)
         })
     }, [])
+    const deleteApexLink = useCallback((linkId: string) => {
+        setApexes((apexes) => {
+            let newApexes = apexes.map((apex) => {
+                return apex.id === activeApex ?
+                    {
+                        ...apex,
+                        links: apex.links.filter((link) => link !== linkId)
+                    } :
+                    apex
+            })
+            return newApexes
+        })
+    }, [activeApex])
 
     return (
         <div className={styles.field}>
             <svg className={styles.svgField} onDoubleClick={onDoubleClickHandler}>
                 {
                     apexes.map((apex, key) => {
-
                         return (
                             <g key={key}>
                                 {
@@ -90,15 +101,34 @@ export const Field: React.FC = React.memo(() => {
                                             (apex) => apex.id === link
                                         )
                                         if (linkApex) {
-                                            let [cx, cy] = [linkApex.cx, linkApex.cy]
+                                            let [cx, cy, r] = [linkApex.cx, linkApex.cy, linkApex.r]
+                                            console.log(cx, cy)
                                             return (
-                                                <line key={key}
-                                                      stroke={'black'}
-                                                      strokeWidth={3}
-                                                      x1={apex.cx} y1={apex.cy}
-                                                      x2={cx} y2={cy}
-                                                      pointerEvents={'none'}
-                                                />
+                                                <g key={key}>
+                                                    <line stroke={'black'}
+                                                          strokeWidth={3}
+                                                          x1={apex.cx} y1={apex.cy}
+                                                          x2={cx} y2={cy}
+                                                          pointerEvents={'none'}
+                                                    />
+                                                    {
+                                                        activeApex === apex.id &&
+                                                        <g className={styles.deleteGroup}>
+                                                            <path className={styles.deleteSign}
+                                                                  strokeWidth={2}
+                                                                  stroke={'red'}
+                                                                  d={`M${cx + (r - 3)} ${cy - (r - 3)} l6 -6 m-6 0 l6 6`}
+                                                                  />
+                                                            <circle className={styles.deleteBackground}
+                                                                    cx={cx + r}
+                                                                    cy={cy - r}
+                                                                    r={8}
+                                                                    onClick={() => {
+                                                                        deleteApexLink(link)
+                                                                    }}/>
+                                                        </g>
+                                                    }
+                                                </g>
                                             )
                                         }
                                         return ''
@@ -137,6 +167,7 @@ export const Field: React.FC = React.memo(() => {
                                     <g className={styles.deleteGroup}>
                                         <path className={styles.deleteSign}
                                               strokeWidth={1}
+                                              stroke={'#857272'}
                                               d={`M${apex.cx + apex.r} ${apex.cy - apex.r} l6 -6 m-6 0 l6 6`}/>
                                         <circle className={styles.deleteBackground}
                                                 cx={apex.cx + apex.r + 3}
