@@ -11,8 +11,6 @@ type TApexProps = {
     },
     setActiveApex: (apexId: string) => void,
     updateApexLinks: (apexId: string) => void,
-    deleteApexById: (apexId: string) => void,
-    updateApexR: (apexId: string, size: number) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
 }
 
@@ -22,9 +20,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           movingApex,
                                                           setActiveApex,
                                                           updateApexLinks,
-                                                          deleteApexById,
                                                           onMouseMoveHandler,
-                                                          updateApexR,
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
@@ -43,71 +39,53 @@ export const Apex: React.FC<TApexProps> = React.memo(({
 
     return (
         <>
-            <circle className={`${styles.apex} ${activeApex === apex.id ? styles.activeApex : ''}`}
-                    cx={String(apex.cx)}
-                    cy={String(apex.cy)}
-                    r={String(apex.r)}
-                    onMouseDown={() => {
-                        apexPosition.current.cx = apex.cx
-                        apexPosition.current.cy = apex.cy
-                        //@ts-ignore
-                        document.addEventListener('mousemove', mouseMoveHandler)
-                    }}
-                    onMouseUp={() => {
-                        if (moveStatus) {
-                            // if drag - stop drag
-                            setMoveStatus(false)
-                            movingApex.current = ''
-                        }
-                        document.removeEventListener('mousemove', mouseMoveHandler)
-                    }}
-                    onDoubleClick={(event) => {
-                        event.stopPropagation()
-                        debugger
-                        if (!activeApex) {
-                            setActiveApex(apex.id)
-                        } else {
-                            if (activeApex === apex.id) {
-                                setActiveApex('')
-                            }
-                        }
-                    }}
-                    onClick={() => {
-                        if (activeApex && activeApex !== apex.id) {
-                            updateApexLinks(apex.id)
-                        }
-                    }}
-                    onWheel={(event) => {
-                        if (activeApex) {
-                            event.stopPropagation()
-                            if (activeApex === apex.id ) {
-                                if (apex.r > 2 && apex.r < 50) {
-                                    updateApexR(apex.id, event.deltaY > 0 ? 1 : -1)
-                                } else if (apex.r <= 2) {
-                                    updateApexR(apex.id, event.deltaY > 0 ? 1 : 0)
-                                } else if (apex.r >= 50) {
-                                    updateApexR(apex.id, event.deltaY > 0 ? 0 : -1)
-                                }
-                            }
-                        }
-                    }}
+            <path className={`${styles.apex}`}
+                  stroke={apex.style.borderColor}
+                  strokeWidth={apex.style.borderWidth}
+                  fill={apex.style.backgroundColor}
+                  opacity={apex.style.opacity}
+                  d={`M${apex.cx} ${apex.cy}
+                      m0 ${-apex.style.heightDiv}
+                      l${apex.style.widthDiv - apex.style.borderRadius} 0
+                      c0 0,${apex.style.borderRadius} 0,${apex.style.borderRadius} ${apex.style.borderRadius}
+                      l0 ${(apex.style.heightDiv - apex.style.borderRadius) * 2}
+                      c0 0,0 ${apex.style.borderRadius},${-apex.style.borderRadius} ${apex.style.borderRadius}
+                      l${-((apex.style.widthDiv - apex.style.borderRadius) * 2)} 0
+                      c0 0,${-apex.style.borderRadius} 0,${-apex.style.borderRadius} ${-apex.style.borderRadius}
+                      l0 ${-((apex.style.heightDiv - apex.style.borderRadius) * 2)}
+                      c0 0,0 ${-apex.style.borderRadius},${apex.style.borderRadius} ${-apex.style.borderRadius}
+                      z`}
+                  onMouseDown={() => {
+                      apexPosition.current.cx = apex.cx
+                      apexPosition.current.cy = apex.cy
+                      //@ts-ignore
+                      document.addEventListener('mousemove', mouseMoveHandler)
+                  }}
+                  onMouseUp={() => {
+                      if (moveStatus) {
+                          // if drag - stop drag
+                          setMoveStatus(false)
+                          movingApex.current = ''
+                      }
+                      document.removeEventListener('mousemove', mouseMoveHandler)
+                  }}
+                  onDoubleClick={(event) => {
+                      event.stopPropagation()
+                      if (!activeApex) {
+                          setActiveApex(apex.id)
+                      } else {
+                          if (activeApex === apex.id) {
+                              setActiveApex('')
+                          }
+                      }
+                  }}
+                  onClick={() => {
+                      if (activeApex && activeApex !== apex.id) {
+                          updateApexLinks(apex.id)
+                      }
+                  }}
             />
-            {
-                activeApex === apex.id &&
-                <g className={styles.deleteGroup}>
-                    <path className={styles.deleteSign}
-                          strokeWidth={1}
-                          stroke={'#857272'}
-                          d={`M${apex.cx + apex.r} ${apex.cy - apex.r} l6 -6 m-6 0 l6 6`}/>
-                    <circle className={styles.deleteBackground}
-                            cx={apex.cx + apex.r + 3}
-                            cy={apex.cy - apex.r - 3}
-                            r={8}
-                            onClick={() => {
-                                deleteApexById(apex.id)
-                            }}/>
-                </g>
-            }
         </>
     )
 })
+

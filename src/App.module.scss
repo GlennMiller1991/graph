@@ -1,7 +1,7 @@
 @import './../src/common/styles/variables.module';
 
 .app {
-  height: 100vh;
+  height: 100%;
   background-color: antiquewhite;
   .controlPanel {
     height: $controlPanelHeight;

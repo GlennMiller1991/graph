@@ -4,6 +4,7 @@ import variables from './../../common/styles/variables.module.scss';
 import {v1} from "uuid";
 import {Apex} from "./Apex/Apex";
 import {ApexLink} from "./ApexLink/ApexLink";
+import {EditBar} from "./EditBar/EditBar";
 
 export const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
@@ -30,7 +31,6 @@ export const Field: React.FC = React.memo(() => {
     // apex that is moving now without state
     const movingApex = useRef<string>('')
 
-
     // callbacks
     const onDoubleClickHandler = useCallback((event: MouseEvent<SVGSVGElement>) => {
         // create new apex on the field
@@ -42,7 +42,15 @@ export const Field: React.FC = React.memo(() => {
                 cy: event.clientY - controlPanelHeight,
                 id: v1(),
                 links: [],
-                style: {},
+                style: {
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: 'black',
+                    backgroundColor: 'red',
+                    opacity: 1,
+                    widthDiv: 100,
+                    heightDiv: 15
+                },
             }
         ])
     }, [apexes])
@@ -90,9 +98,9 @@ export const Field: React.FC = React.memo(() => {
             return newApexes
         })
     }, [activeApex])
-    const updateApexR = useCallback((apexId: string, size: number) => {
+    const updateApexStyles = useCallback((apexId: string, apexStyles: Partial<TApexProperties>) => {
         setApexes((apexes) => {
-            return apexes.map((apex) => apex.id === apexId ? {...apex, r: apex.r + size} : apex)
+            return apexes.map((apex) => apex.id === apexId ? {...apex, style: {...apex.style, ...apexStyles}} : apex)
         })
     }, [])
 
@@ -151,7 +159,6 @@ export const Field: React.FC = React.memo(() => {
                                     })
                                 }
                                 <Apex key={key}
-                                      updateApexR={updateApexR}
                                       movingApex={movingApex}
                                       activeApex={activeApex}
                                       apex={apex}
@@ -166,8 +173,12 @@ export const Field: React.FC = React.memo(() => {
                     })
                 }
             </svg>
+            {
+                activeApex &&
+                <EditBar apex={apexes.find((apex) => apex.id === activeApex) as TApexProperties}
+                         deleteApexById={deleteApexById}
+                         updateApexStyles={updateApexStyles}/>
+            }
         </div>
     )
 })
-
-
