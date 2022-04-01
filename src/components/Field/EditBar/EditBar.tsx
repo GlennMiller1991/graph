@@ -100,26 +100,28 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                            }
                            updateApexStyles(apex.id, newStyles)
                        }}/>
-                <input type={"color"}
-                       data-property={'borderColor'}
-                       value={apex.style.borderColor}
-                       onChange={(event) => {
-                           let newValue = event.currentTarget.value
-                           let newStyles = {
-                               [event.currentTarget.dataset.property as string]: newValue
-                           }
-                           updateApexStyles(apex.id, newStyles)
-                       }}/>
-                <input type={"color"}
-                       data-property={'backgroundColor'}
-                       value={apex.style.backgroundColor}
-                       onChange={(event) => {
-                           let newValue = event.currentTarget.value
-                           let newStyles = {
-                               [event.currentTarget.dataset.property as string]: newValue
-                           }
-                           updateApexStyles(apex.id, newStyles)
-                       }}/>
+                <div className={styles.colors}>
+                    <input type={"color"}
+                           data-property={'borderColor'}
+                           value={apex.style.borderColor}
+                           onChange={(event) => {
+                               let newValue = event.currentTarget.value
+                               let newStyles = {
+                                   [event.currentTarget.dataset.property as string]: newValue
+                               }
+                               updateApexStyles(apex.id, newStyles)
+                           }}/>
+                    <input type={"color"}
+                           data-property={'backgroundColor'}
+                           value={apex.style.backgroundColor}
+                           onChange={(event) => {
+                               let newValue = event.currentTarget.value
+                               let newStyles = {
+                                   [event.currentTarget.dataset.property as string]: newValue
+                               }
+                               updateApexStyles(apex.id, newStyles)
+                           }}/>
+                </div>
             </div>
             <div>
 
