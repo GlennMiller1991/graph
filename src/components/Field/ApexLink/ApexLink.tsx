@@ -1,47 +1,68 @@
 import React from "react";
-import styles from "../Field.module.scss";
-import {TApexProperties} from "../Field";
+import styles from "./ApexLink.module.scss";
+import {TApexProperties, TLineStyle} from "../Field";
+import {getPointOfRectByAngle} from "../../../utils/geometry";
 
 type TApexLink = {
-    apex: TApexProperties,
-    link: string,
-    cx: number,
-    cy: number,
-    r: number,
+    lineId: string,
+    startApex: TApexProperties,
+    endApex: TApexProperties,
     activeApex: string,
-    deleteApexLink: (apexId: string) => void,
+    activeLine: string
+    deleteApexLink: (lineId: string) => void,
+    setActiveLine: (lineId: string) => void,
+    style: TLineStyle,
 }
 export const ApexLink: React.FC<TApexLink> = React.memo(({
-                                                             apex,
-                                                             link,
-                                                             cx,
-                                                             cy,
-                                                             r,
+                                                             lineId,
+                                                             startApex,
+                                                             endApex,
                                                              activeApex,
+                                                             activeLine,
                                                              deleteApexLink,
+                                                             setActiveLine,
+                                                             style,
                                                          }) => {
+
+    const lineStartPosition = getPointOfRectByAngle(style.startAngle, startApex.style.widthDiv, startApex.style.heightDiv)
+    const lineEndPosition = getPointOfRectByAngle(style.endAngle, endApex.style.widthDiv, endApex.style.heightDiv)
+
     return (
         <g>
-            <line stroke={'black'}
-                  strokeWidth={3}
-                  x1={apex.cx} y1={apex.cy}
-                  x2={cx} y2={cy}
-                  pointerEvents={'none'}
+            <path className={styles.line}
+                  stroke={'black'}
+                  strokeWidth={1}
+                  fill={'none'}
+                  d={`
+                     M${lineStartPosition.x + startApex.cx} ${lineStartPosition.y + startApex.cy}
+                     C${startApex.cx} ${startApex.cy},
+                     ${endApex.cx - startApex.cx} ${endApex.cy - startApex.cy}, 
+                     ${lineEndPosition.x + endApex.cx} ${lineEndPosition.y + endApex.cy}`}
+                  onDoubleClick={(event) => {
+                      event.stopPropagation()
+                      if (!activeLine) {
+                          setActiveLine(lineId)
+                      } else {
+                          if (activeLine === lineId) {
+                              setActiveLine('')
+                          }
+                      }
+                  }}
             />
             {
-                activeApex === apex.id &&
+                activeApex === startApex.id &&
                 <g className={styles.deleteGroup}>
                     <path className={styles.deleteSign}
                           strokeWidth={2}
                           stroke={'red'}
-                          d={`M${cx + (r - 3)} ${cy - (r - 3)} l6 -6 m-6 0 l6 6`}
+                          d={`M${endApex.cx + (endApex.style.widthDiv - 3)} ${endApex.cy - (endApex.style.heightDiv - 3)} l6 -6 m-6 0 l6 6`}
                     />
                     <circle className={styles.deleteBackground}
-                            cx={cx + r}
-                            cy={cy - r}
+                            cx={endApex.cx + endApex.style.widthDiv}
+                            cy={endApex.cy - endApex.style.heightDiv}
                             r={8}
                             onClick={() => {
-                                deleteApexLink(link)
+                                deleteApexLink(lineId)
                             }}/>
                 </g>
             }

@@ -10,7 +10,7 @@ type TApexProps = {
         current: string
     },
     setActiveApex: (apexId: string) => void,
-    updateApexLinks: (apexId: string) => void,
+    updateApexLinks: (linkFromId: string, linkToId: string) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
 }
 
@@ -81,7 +81,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   }}
                   onClick={() => {
                       if (activeApex && activeApex !== apex.id) {
-                          updateApexLinks(apex.id)
+                          updateApexLinks(activeApex, apex.id)
                       }
                   }}
             />

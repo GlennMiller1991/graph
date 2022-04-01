@@ -1,11 +1,11 @@
 import React, {useState} from "react";
 import styles from "../Field.module.scss";
-import {TApexProperties} from "../Field";
+import {TApexProperties, TApexStyle} from "../Field";
 
 type TEditBarProps = {
     apex: TApexProperties,
     deleteApexById: (apexId: string) => void,
-    updateApexStyles: (apexId: string, apexProperty: Partial<TApexProperties>) => void,
+    updateApexStyles: (apexId: string, apexProperty: Partial<TApexStyle>) => void,
 }
 export const EditBar: React.FC<TEditBarProps> = React.memo(({
                                                                 apex,
@@ -14,10 +14,7 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                                                             }) => {
 
     const [side, setSide] = useState<'left' | 'right'>('right')
-    console.log(`${side === 'right' ?
-        apex.cx + apex.style.widthDiv + 29 :
-        apex.cx - apex.style.widthDiv - 29 - 300
-    }px ${apex.cx}`)
+
     return (
         <div className={styles.editBar} style={{
             top: `${apex.cy - 120}px`,
@@ -122,6 +119,7 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                                updateApexStyles(apex.id, newStyles)
                            }}/>
                 </div>
+
             </div>
             <div>
 

@@ -70,22 +70,27 @@
       z-index: 5;
     }
   }
+  .lineEditBar {
+    width: $editBarWidth;
+    min-height: 200px;
+    border-radius: 15px;
+    box-shadow: 0 0 10px 1px #cfd2ce;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background-color: #d8e3d3;
+    border: 1px dashed #889185;
+    padding: 5px;
+    z-index: 666;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+  }
   .svgField {
     width: 100%;
     height: 100%;
   }
 }
 
-.activeApex {
-  fill: green;
-}
-
-.deleteGroup {
-  z-index: 1000;
-
-
-  .deleteBackground {
-    cursor: pointer;
-    fill: rgba(201, 160, 160, 0.2);
-  }
-}
