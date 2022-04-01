@@ -15,9 +15,17 @@ export type TApexProperties = {
     cx: number,
     cy: number,
     links: Array<TLink>,
-    style: any,
+    style: TApexStyle,
 }
-
+export type TApexStyle = {
+    borderRadius: number,
+    borderWidth: number,
+    borderColor: string,
+    backgroundColor: string,
+    opacity: number,
+    widthDiv: number,
+    heightDiv: number,
+}
 
 export const Field: React.FC = React.memo(() => {
     // state

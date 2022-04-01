@@ -13,14 +13,17 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                                                                 updateApexStyles,
                                                             }) => {
 
-    const [side, setSide] = useState<'left' | 'right' | 'top'>('right')
-    console.log(apex.style)
+    const [side, setSide] = useState<'left' | 'right'>('right')
+    console.log(`${side === 'right' ?
+        apex.cx + apex.style.widthDiv + 29 :
+        apex.cx - apex.style.widthDiv - 29 - 300
+    }px ${apex.cx}`)
     return (
         <div className={styles.editBar} style={{
             top: `${apex.cy - 120}px`,
             left: `${side === 'right' ?
-                apex.cx + apex.style.widthDiv + 29 :
-                apex.cx - apex.style.widthDiv - 29 - 300
+                apex.cx + +apex.style.widthDiv + 29 :
+                apex.cx - +apex.style.widthDiv - 29 - 300
             }px`
         }}
              ref={(node) => {
@@ -33,8 +36,7 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                              if (nodeSizes.right + 4 > parentSizes.width) {
                                  setSide('left')
                              }
-                         }
-                         {
+                         } else {
                              if (nodeSizes.left - 4 < 0) {
                                  setSide('right')
                              }
@@ -52,7 +54,7 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
             <div className={styles.changeR}>
                 <input type={"range"} max={100} min={5} step={1} data-property={'widthDiv'} value={apex.style.widthDiv}
                        onChange={(event) => {
-                           let newValue = event.currentTarget.value
+                           let newValue = +event.currentTarget.value
                            let newStyles = {
                                [event.currentTarget.dataset.property as string]: newValue
                            }
@@ -63,7 +65,7 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                        }}/>
                 <input type={"range"} max={50} min={5} step={1} data-property={'heightDiv'} value={apex.style.heightDiv}
                        onChange={(event) => {
-                           let newValue = event.currentTarget.value
+                           let newValue = +event.currentTarget.value
                            let newStyles = {
                                [event.currentTarget.dataset.property as string]: newValue
                            }
@@ -73,15 +75,50 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
                            updateApexStyles(apex.id, newStyles)
                        }}/>
                 <input type={"range"}
-                       max={apex.style.widthDiv < apex.style.heightDiv ? apex.style.widthDiv : apex.style.heightDiv}
+                       max={apex.style.widthDiv < +apex.style.heightDiv ? apex.style.widthDiv : apex.style.heightDiv}
                        min={0}
                        step={1}
                        data-property={'borderRadius'}
                        value={apex.style.borderRadius}
                        onChange={(event) => {
-                           updateApexStyles(apex.id, {
-                               [event.currentTarget.dataset.property as string]: event.currentTarget.value
-                           })
+                           let newValue = +event.currentTarget.value
+                           let newStyles = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyles)
+                       }}/>
+                <input type={"range"}
+                       max={10}
+                       min={0}
+                       step={0.1}
+                       data-property={'borderWidth'}
+                       value={apex.style.borderWidth}
+                       onChange={(event) => {
+                           let newValue = +event.currentTarget.value
+                           let newStyles = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyles)
+                       }}/>
+                <input type={"color"}
+                       data-property={'borderColor'}
+                       value={apex.style.borderColor}
+                       onChange={(event) => {
+                           let newValue = event.currentTarget.value
+                           let newStyles = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyles)
+                       }}/>
+                <input type={"color"}
+                       data-property={'backgroundColor'}
+                       value={apex.style.backgroundColor}
+                       onChange={(event) => {
+                           let newValue = event.currentTarget.value
+                           let newStyles = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyles)
                        }}/>
             </div>
             <div>
