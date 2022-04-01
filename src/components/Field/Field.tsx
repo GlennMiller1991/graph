@@ -1,11 +1,11 @@
-import React, {MouseEvent, useCallback, useRef, useState} from "react";
+import React, {MouseEvent, useCallback, useMemo, useRef, useState} from "react";
 import styles from './Field.module.scss'
 import variables from './../../common/styles/variables.module.scss';
 import {v1} from "uuid";
 import {Apex} from "./Apex/Apex";
 import {ApexLink} from "./ApexLink/ApexLink";
 import {EditBar} from "./EditBar/EditBar";
-import {getPointOfRectByAngle} from "../../utils/geometry";
+import {LineEditBar} from "./LineEditBar/LineEditBar";
 
 export const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
@@ -29,12 +29,8 @@ export type TApexStyle = {
 }
 export type TLineProperties = {
     id: string,
-    start: {
-        id: string,
-    },
-    end: {
-        id: string,
-    },
+    start: string,
+    end: string,
     style: TLineStyle
 }
 export type TLineStyle = {
@@ -55,6 +51,28 @@ export const Field: React.FC = React.memo(() => {
 
     // apex that is moving now without state
     const movingApex = useRef<string>('')
+
+    const activeLineObj: undefined | { line: TLineProperties, startApexObj: TApexProperties, endApexObj: TApexProperties } = useMemo(() => {
+        let activeLineObj = lines.find((line) => line.id === activeLine)
+        let retObj: any = {}
+        if (activeLineObj) {
+            //@ts-ignore
+            let startApexObj = apexes.find((apex) => apex.id === activeLineObj.start)
+            //@ts-ignore
+            let endApexObj = apexes.find((apex) => apex.id === activeLineObj.end)
+            if (!startApexObj || !endApexObj) {
+                deleteApexLink(activeLine)
+                setActiveLine('')
+            } else {
+                retObj.line = activeLineObj
+                retObj.startApexObj = startApexObj
+                retObj.endApexObj = endApexObj
+            }
+        } else {
+            setActiveLine('')
+        }
+        return retObj
+    }, [activeLine, lines])
 
     // callbacks
     const onDoubleClickHandler = useCallback((event: MouseEvent<SVGSVGElement>) => {
@@ -93,15 +111,13 @@ export const Field: React.FC = React.memo(() => {
     const updateApexLinks = useCallback((linkFromId: string, linkToId: string) => {
         setLines((lines) => {
             return [
-                ...lines,
+                ...lines.filter((line) => {
+                    return line.start !== linkFromId || line.end !== linkToId
+                }),
                 {
                     id: v1(),
-                    start: {
-                        id: linkFromId,
-                    },
-                    end: {
-                        id: linkToId,
-                    },
+                    start: linkFromId,
+                    end: linkToId,
                     style: {
                         startAngle: 90,
                         endAngle: -90,
@@ -187,8 +203,8 @@ export const Field: React.FC = React.memo(() => {
                 }
                 {
                     lines.map((line, key) => {
-                        let startApex = apexes.find((apex) => apex.id === line.start.id)
-                        let endApex = apexes.find((apex) => apex.id === line.end.id)
+                        let startApex = apexes.find((apex) => apex.id === line.start)
+                        let endApex = apexes.find((apex) => apex.id === line.end)
                         if (startApex && endApex) {
                             return (
                                 <ApexLink lineId={line.id}
@@ -196,9 +212,7 @@ export const Field: React.FC = React.memo(() => {
                                           key={key}
                                           startApex={startApex}
                                           endApex={endApex}
-                                          activeApex={activeApex}
                                           activeLine={activeLine}
-                                          deleteApexLink={deleteApexLink}
                                           setActiveLine={setActiveLine}/>
                             )
                         } else {
@@ -214,43 +228,14 @@ export const Field: React.FC = React.memo(() => {
                     <EditBar apex={apexes.find((apex) => apex.id === activeApex) as TApexProperties}
                              deleteApexById={deleteApexById}
                              updateApexStyles={updateApexStyles}/> :
-                    activeLine ?
-                        <LineEditBar activeLine={activeLine} startApex={apexes.find((apex) => {
-                            let line = lines.find((line) => line.id === activeLine)
-                            if (line) {
-                                //@ts-ignore
-                                let startApex = apexes.find((apex) => apex.id === line.start.id)
-                                if (startApex) return startApex
-                            }
-                            return undefined
-                        }) as TApexProperties}
-                                     changeLineStyles={changeLineStyles}/> :
+                    activeLine && activeLineObj ?
+                        <LineEditBar line={activeLineObj.line}
+                                     changeLineStyles={changeLineStyles}
+                                     deleteApexLink={deleteApexLink}
+                        /> :
                         false
             }
         </div>
     )
 })
 
-type TLineEditBarProps = {
-    activeLine: string,
-    startApex: TApexProperties,
-    changeLineStyles: (lineId: string, lineStyles: Partial<TLineStyle>) => void,
-}
-export const LineEditBar: React.FC<TLineEditBarProps> = React.memo(({
-                                                                        activeLine,
-                                                                        startApex,
-                                                                        changeLineStyles,
-                                                                    }) => {
-    return (
-        <div className={styles.lineEditBar}>
-            line {activeLine}
-            <input type={'range'}
-                   max={180}
-                   min={-179}
-                   step={1}
-                   onChange={(event) => {
-                       changeLineStyles(activeLine, {startAngle: +event.currentTarget.value})
-                   }}/>
-        </div>
-    )
-})
