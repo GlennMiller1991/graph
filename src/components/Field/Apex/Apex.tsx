@@ -22,7 +22,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           updateApexLinks,
                                                           onMouseMoveHandler,
                                                       }) => {
-
+    console.log('from apex ', apex.id)
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
     const apexPosition = useRef({cx: 0, cy: 0})
 

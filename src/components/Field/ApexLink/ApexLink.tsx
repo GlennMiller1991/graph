@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import styles from "./ApexLink.module.scss";
 import {TApexProperties, TLineStyle} from "../Field";
 import {getPointOfRectByAngle} from "../../../utils/geometry";
@@ -20,16 +20,18 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                                                              style,
                                                          }) => {
 
+    console.log('from apexlink ', lineId)
     const lineStartPosition = getPointOfRectByAngle(style.startAngle, startApex.style.widthDiv, startApex.style.heightDiv)
     const secondPointStartLine = getPointOfRectByAngle(style.startAngle, startApex.style.widthDiv + 100, startApex.style.heightDiv + 100)
     const lineEndPosition = getPointOfRectByAngle(style.endAngle, endApex.style.widthDiv, endApex.style.heightDiv)
     const secondPointEndLine = getPointOfRectByAngle(style.endAngle, endApex.style.widthDiv + 100, endApex.style.heightDiv + 100)
-
     return (
         <path className={styles.line}
-              stroke={'black'}
-              strokeWidth={1}
+              stroke={style.color}
+              strokeWidth={style.width}
               fill={'none'}
+              strokeDasharray={style.dash}
+              style={{animationDuration: `${style.animationDuration}s`}}
               d={`
                      M${lineStartPosition.x + startApex.cx} ${lineStartPosition.y + startApex.cy}
                      C${secondPointStartLine.x + startApex.cx- 10} ${secondPointStartLine.y + startApex.cy - 10},

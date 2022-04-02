@@ -36,6 +36,10 @@ export type TLineProperties = {
 export type TLineStyle = {
     startAngle: number,
     endAngle: number,
+    color: string,
+    width: number,
+    dash: number,
+    animationDuration: number,
 }
 
 export const Field: React.FC = React.memo(() => {
@@ -92,7 +96,7 @@ export const Field: React.FC = React.memo(() => {
                     backgroundColor: '#a0a0a0',
                     opacity: 1,
                     widthDiv: 100,
-                    heightDiv: 15
+                    heightDiv: 15,
                 },
             }
         ])
@@ -110,26 +114,36 @@ export const Field: React.FC = React.memo(() => {
     }, [])
     const updateApexLinks = useCallback((linkFromId: string, linkToId: string) => {
         setLines((lines) => {
-            return [
-                ...lines.filter((line) => {
-                    return line.start !== linkFromId || line.end !== linkToId
-                }),
-                {
-                    id: v1(),
-                    start: linkFromId,
-                    end: linkToId,
-                    style: {
-                        startAngle: 90,
-                        endAngle: -90,
+            let lineIndex = lines.findIndex((line) => line.start === linkFromId && line.end === linkToId)
+            if (lineIndex === -1) {
+                return [
+                    ...lines,
+                    {
+                        id: v1(),
+                        start: linkFromId,
+                        end: linkToId,
+                        style: {
+                            startAngle: 90,
+                            endAngle: -90,
+                            color: '#9b7d7d',
+                            width: 1,
+                            dash: 0,
+                            animationDuration: 0,
+                        }
                     }
-                }
-            ]
+                ]
+            } else {
+                return lines
+            }
         })
     }, [])
     const deleteApexById = useCallback((apexId: string) => {
         setActiveApex('')
         setApexes((apexes) => {
             return apexes.filter((apex) => apex.id !== apexId)
+        })
+        setLines((lines) => {
+            return lines.filter((line) => line.start !== apexId && line.end !== apexId)
         })
     }, [])
     const deleteApexLink = useCallback((lineId: string) => {
@@ -232,6 +246,7 @@ export const Field: React.FC = React.memo(() => {
                         <LineEditBar line={activeLineObj.line}
                                      changeLineStyles={changeLineStyles}
                                      deleteApexLink={deleteApexLink}
+                                     setActiveLine={setActiveLine}
                         /> :
                         false
             }
