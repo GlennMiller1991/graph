@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {createRef, useRef, useState} from "react";
 import styles from "../Field.module.scss";
 import {TApexProperties, TApexStyle} from "../Field";
 
@@ -46,8 +46,66 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
             <div className={styles.editBarPointerCover}
                  style={side === 'left' ? {right: '0'} : {left: '0'}}/>
             <div className={styles.editBarHeader}>
-                {apex.id}
+                <input type={'text'}
+                       defaultValue={apex.style.header}
+                       data-property={'header'}
+                       onChange={(event) => {
+                           let newValue = event.currentTarget.value
+                           let newStyle = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyle)
+                       }}/>
             </div>
+            <div className={styles.inputsContainer}>
+                <input type={'range'}
+                       data-property={'fontSize'}
+                       min={10}
+                       max={36}
+                       step={.1}
+                       value={apex.style.fontSize}
+                       onChange={(event) => {
+                           let newValue = +event.currentTarget.value
+                           let newStyle = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyle)
+                       }}
+                />
+                <input type={'range'}
+                       data-property={'heightOffset'}
+                       value={apex.style.heightOffset}
+                       min={-100}
+                       max={100}
+                       step={1}
+                       onChange={(event) => {
+                           let newValue = +event.currentTarget.value
+                           let newStyle = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyle)
+                       }}
+                />
+                <input type={'range'}
+                       data-property={'widthOffset'}
+                       value={apex.style.widthOffset}
+                       min={-100}
+                       max={1000}
+                       step={1}
+                       onChange={(event) => {
+                           let newValue = +event.currentTarget.value
+                           let newStyle = {
+                               [event.currentTarget.dataset.property as string]: newValue
+                           }
+                           updateApexStyles(apex.id, newStyle)
+                       }}
+                />
+            </div>
+            <div style={{borderBottom: '1px solid black', width: '80%'}}/>
+            <div className={styles.inputsContainer}>
+                <input type={'file'}/>
+            </div>
+            <div style={{borderBottom: '1px solid black', width: '80%'}}/>
             <div className={styles.changeR}>
                 <input type={"range"} max={100} min={5} step={1} data-property={'widthDiv'} value={apex.style.widthDiv}
                        onChange={(event) => {

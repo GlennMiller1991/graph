@@ -19,6 +19,15 @@
     align-items: center;
     flex-direction: column;
     gap: 10px;
+    .inputsContainer {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 5;
+      & * {
+        width: 80%;
+      }
+    }
     .changeR {
       display: flex;
       justify-content: center;
@@ -94,3 +103,6 @@
   }
 }
 
+.svgText {
+  pointer-events: none;
+}

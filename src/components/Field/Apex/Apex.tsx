@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import styles from "../Field.module.scss";
 import {controlPanelHeight, TApexProperties} from "../Field";
+import testImg from './../../../assets/test.jpg'
 
 type TMoveStatus = false | true
 type TApexProps = {
     apex: TApexProperties,
+    redrawApex: (apexId: string) => void,
     activeApex: string,
     movingApex: {
         current: string
@@ -12,6 +14,7 @@ type TApexProps = {
     setActiveApex: (apexId: string) => void,
     updateApexLinks: (linkFromId: string, linkToId: string) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
+    isSelected: boolean,
 }
 
 export const Apex: React.FC<TApexProps> = React.memo(({
@@ -21,12 +24,14 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           setActiveApex,
                                                           updateApexLinks,
                                                           onMouseMoveHandler,
+                                                          redrawApex,
+                                                          isSelected,
                                                       }) => {
-    console.log('from apex ', apex.id)
+
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
     const apexPosition = useRef({cx: 0, cy: 0})
-
     const mouseMoveHandler = useCallback((event: MouseEvent) => {
+        event.stopPropagation()
         if (Math.abs(event.clientX - apexPosition.current.cx) > 20 ||
             Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy) > 20) {
             apexPosition.current.cx = -100
@@ -38,8 +43,9 @@ export const Apex: React.FC<TApexProps> = React.memo(({
     }, [movingApex, onMouseMoveHandler, apex.id])
 
     return (
-        <>
+        <g>
             <path className={`${styles.apex}`}
+                  style={isSelected ? {opacity: .3} : {}}
                   stroke={apex.style.borderColor}
                   strokeWidth={apex.style.borderWidth}
                   fill={apex.style.backgroundColor}
@@ -55,17 +61,21 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                       l0 ${-((apex.style.heightDiv - apex.style.borderRadius) * 2)}
                       c0 0,0 ${-apex.style.borderRadius},${apex.style.borderRadius} ${-apex.style.borderRadius}
                       z`}
-                  onMouseDown={() => {
+                  onMouseDown={(event) => {
+                      event.stopPropagation()
                       apexPosition.current.cx = apex.cx
                       apexPosition.current.cy = apex.cy
                       //@ts-ignore
                       document.addEventListener('mousemove', mouseMoveHandler)
                   }}
-                  onMouseUp={() => {
+                  onMouseUp={(event) => {
+                      event.stopPropagation()
                       if (moveStatus) {
                           // if drag - stop drag
                           setMoveStatus(false)
                           movingApex.current = ''
+                      } else {
+                          if (!activeApex) redrawApex(apex.id)
                       }
                       document.removeEventListener('mousemove', mouseMoveHandler)
                   }}
@@ -79,13 +89,20 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                           }
                       }
                   }}
-                  onClick={() => {
+                  onClick={(event) => {
+                      event.stopPropagation()
                       if (activeApex && activeApex !== apex.id) {
                           updateApexLinks(activeApex, apex.id)
                       }
                   }}
             />
-        </>
+            <text className={styles.svgText}
+                  x={apex.cx - apex.style.widthDiv + apex.style.borderRadius + apex.style.widthOffset}
+                  y={apex.cy - apex.style.heightDiv + apex.style.borderRadius + apex.style.heightOffset}
+                  fontSize={apex.style.fontSize}>
+                {apex.style.header}
+            </text>
+        </g>
     )
 })
 

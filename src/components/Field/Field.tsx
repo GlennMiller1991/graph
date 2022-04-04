@@ -26,6 +26,11 @@ export type TApexStyle = {
     opacity: number,
     widthDiv: number,
     heightDiv: number,
+    header: string,
+    nameHeight: number,
+    fontSize: number,
+    heightOffset: number,
+    widthOffset: number,
 }
 export type TLineProperties = {
     id: string,
@@ -56,6 +61,27 @@ export const Field: React.FC = React.memo(() => {
     // apex that is moving now without state
     const movingApex = useRef<string>('')
 
+    // selection login
+    const [selectionStatus, setSelectionStatus] = useState(false)
+    const [cursorCurrentPosition, setCursorCurrentPosition] = useState({top: 0, left: 0, width: 0, height: 0})
+    const cursorStartPosition = useRef({cx: 0, cy: 0})
+    const onSelectionHandler = useCallback(function (event: MouseEvent<SVGSVGElement>) {
+        if (Math.abs(event.clientX - cursorStartPosition.current.cx) > 20 ||
+            Math.abs(event.clientY - controlPanelHeight - cursorStartPosition.current.cy) > 20) {
+            setSelectionStatus(true)
+            setCursorCurrentPosition({
+                top: cursorStartPosition.current.cy < event.clientY - controlPanelHeight ?
+                    cursorStartPosition.current.cy :
+                    event.clientY - controlPanelHeight,
+                left: cursorStartPosition.current.cx < event.clientX ?
+                    cursorStartPosition.current.cx :
+                    event.clientX,
+                width: Math.abs(event.clientX - cursorStartPosition.current.cx),
+                height: Math.abs(event.clientY - controlPanelHeight - cursorStartPosition.current.cy),
+            })
+        }
+    }, [])
+    const [selectedElements, setSelectedElements] = useState<string[]>([])
     const activeLineObj: undefined | { line: TLineProperties, startApexObj: TApexProperties, endApexObj: TApexProperties } = useMemo(() => {
         let activeLineObj = lines.find((line) => line.id === activeLine)
         let retObj: any = {}
@@ -97,6 +123,11 @@ export const Field: React.FC = React.memo(() => {
                     opacity: 1,
                     widthDiv: 100,
                     heightDiv: 15,
+                    header: 'NODE',
+                    nameHeight: 16,
+                    fontSize: 10,
+                    heightOffset: 0,
+                    widthOffset: 0,
                 },
             }
         ])
@@ -170,10 +201,28 @@ export const Field: React.FC = React.memo(() => {
                 line)
         })
     }, [])
+    const redrawApex = useCallback((apexId: string) => {
+        setApexes((apexes) => {
+            let apex = apexes.find((apex) => apex.id === apexId)
+            if (apex) {
+                return [
+                    ...apexes.filter((apex) => apex.id !== apexId),
+                    {
+                        ...apex
+                    }
+                ]
+            } else {
+                return apexes
+            }
+        })
+    }, [])
 
     return (
         <div className={styles.field}>
             <svg className={styles.svgField}
+                 // onClick={() => {
+                 //     if (!selectionStatus) setSelectedElements([])
+                 // }}
                  onDoubleClick={onDoubleClickHandler}
                  onWheel={(event) => {
                      let newApexes
@@ -198,11 +247,43 @@ export const Field: React.FC = React.memo(() => {
                      }
 
                      setApexes(newApexes)
-                 }}>
+                 }}
+                 onMouseDown={(event) => {
+                     cursorStartPosition.current.cx = event.clientX
+                     cursorStartPosition.current.cy = event.clientY - controlPanelHeight
+                     //@ts-ignore
+                     document.addEventListener('mousemove', onSelectionHandler)
+                 }}
+                 onMouseUp={(event) => {
+                     //@ts-ignore
+                     document.removeEventListener('mousemove', onSelectionHandler)
+                     if (selectionStatus) {
+                         if (window.getSelection) {
+                             window?.getSelection()?.removeAllRanges();
+                         }
+                         let selectedElements = apexes.filter((apex) => {
+                            if (
+                                apex.cx - apex.style.widthDiv > cursorCurrentPosition.left &&
+                                apex.cx + apex.style.widthDiv < cursorCurrentPosition.left + cursorCurrentPosition.width &&
+                                apex.cy - apex.style.heightDiv > cursorCurrentPosition.top &&
+                                apex.cy + apex.style.heightDiv < cursorCurrentPosition.top + cursorCurrentPosition.height
+                            ) {
+                                return true
+                            } else {
+                                return false
+                            }
+                         }).map((apex) => apex.id)
+                         setSelectedElements(selectedElements)
+                         setSelectionStatus(false)
+                     }
+                 }}
+            >
                 {
                     apexes.map((apex, key) => {
                         return (
                             <Apex key={key}
+                                  isSelected={selectedElements.includes(apex.id)}
+                                  redrawApex={redrawApex}
                                   movingApex={movingApex}
                                   activeApex={activeApex}
                                   apex={apex}
@@ -249,6 +330,19 @@ export const Field: React.FC = React.memo(() => {
                                      setActiveLine={setActiveLine}
                         /> :
                         false
+            }
+            {
+                selectionStatus &&
+                <div style={{
+                    position: 'absolute',
+                    border: '1px dashed blue',
+                    backgroundColor: 'rgba(97,121,222,0.3)',
+                    top: cursorCurrentPosition.top,
+                    left: cursorCurrentPosition.left,
+                    width: cursorCurrentPosition.width,
+                    height: cursorCurrentPosition.height,
+                    pointerEvents: 'none',
+                }}/>
             }
         </div>
     )
