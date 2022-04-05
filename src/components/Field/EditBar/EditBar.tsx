@@ -1,4 +1,4 @@
-import React, {createRef, useRef, useState} from "react";
+import React, {useState} from "react";
 import styles from "../Field.module.scss";
 import {TApexProperties, TApexStyle} from "../Field";
 
@@ -6,11 +6,13 @@ type TEditBarProps = {
     apex: TApexProperties,
     deleteApexById: (apexId: string) => void,
     updateApexStyles: (apexId: string, apexProperty: Partial<TApexStyle>) => void,
+    redrawApex: (apexId: string, below: boolean) => void,
 }
 export const EditBar: React.FC<TEditBarProps> = React.memo(({
                                                                 apex,
                                                                 deleteApexById,
                                                                 updateApexStyles,
+                                                                redrawApex,
                                                             }) => {
 
     const [side, setSide] = useState<'left' | 'right'>('right')
@@ -185,6 +187,16 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
             <div className={styles.deleteApex}>
                 <button className={styles.button} onClick={() => deleteApexById(apex.id)}>
                     del
+                </button>
+                <button className={styles.button} onClick={() => {
+                    redrawApex(apex.id, true)
+                }}>
+                    below
+                </button>
+                <button className={styles.button} onClick={() => {
+                    redrawApex(apex.id, false)
+                }}>
+                    above
                 </button>
             </div>
         </div>

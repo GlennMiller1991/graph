@@ -1,20 +1,28 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react'
+import React, {useCallback, useRef, useState} from 'react'
 import styles from "../Field.module.scss";
 import {controlPanelHeight, TApexProperties} from "../Field";
-import testImg from './../../../assets/test.jpg'
 
 type TMoveStatus = false | true
 type TApexProps = {
     apex: TApexProperties,
-    redrawApex: (apexId: string) => void,
     activeApex: string,
     movingApex: {
         current: string
+    },
+    movingApexOffsets: {
+        current: {
+            offsetX: number,
+            offsetY: number,
+        }
     },
     setActiveApex: (apexId: string) => void,
     updateApexLinks: (linkFromId: string, linkToId: string) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
     isSelected: boolean,
+    isCtrlPressed: {
+        current: boolean,
+    },
+    addApexToSelected: (apexId: string, isSelected: boolean) => void,
 }
 
 export const Apex: React.FC<TApexProps> = React.memo(({
@@ -24,23 +32,28 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           setActiveApex,
                                                           updateApexLinks,
                                                           onMouseMoveHandler,
-                                                          redrawApex,
                                                           isSelected,
+                                                          movingApexOffsets,
+                                                          isCtrlPressed,
+                                                          addApexToSelected,
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
+
     const apexPosition = useRef({cx: 0, cy: 0})
+
+
     const mouseMoveHandler = useCallback((event: MouseEvent) => {
         event.stopPropagation()
-        if (Math.abs(event.clientX - apexPosition.current.cx) > 20 ||
-            Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy) > 20) {
+        if (Math.abs(event.clientX - apexPosition.current.cx + movingApexOffsets.current.offsetX) > 20 ||
+            Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy + movingApexOffsets.current.offsetY) > 20) {
             apexPosition.current.cx = -100
             apexPosition.current.cy = -100
             movingApex.current = apex.id
             onMouseMoveHandler(event)
             setMoveStatus(true)
         }
-    }, [movingApex, onMouseMoveHandler, apex.id])
+    }, [movingApexOffsets, movingApex, onMouseMoveHandler, apex.id])
 
     return (
         <g>
@@ -65,6 +78,8 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                       event.stopPropagation()
                       apexPosition.current.cx = apex.cx
                       apexPosition.current.cy = apex.cy
+                      movingApexOffsets.current.offsetX = apex.cx - event.clientX
+                      movingApexOffsets.current.offsetY = apex.cy - (event.clientY - controlPanelHeight)
                       //@ts-ignore
                       document.addEventListener('mousemove', mouseMoveHandler)
                   }}
@@ -74,8 +89,6 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                           // if drag - stop drag
                           setMoveStatus(false)
                           movingApex.current = ''
-                      } else {
-                          if (!activeApex) redrawApex(apex.id)
                       }
                       document.removeEventListener('mousemove', mouseMoveHandler)
                   }}
@@ -91,8 +104,14 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   }}
                   onClick={(event) => {
                       event.stopPropagation()
-                      if (activeApex && activeApex !== apex.id) {
-                          updateApexLinks(activeApex, apex.id)
+                      if (isCtrlPressed.current) {
+                          addApexToSelected(apex.id, isSelected)
+                      } else {
+                          if (!isSelected) {
+                              if (activeApex && activeApex !== apex.id) {
+                                  updateApexLinks(activeApex, apex.id)
+                              }
+                          }
                       }
                   }}
             />

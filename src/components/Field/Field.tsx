@@ -1,4 +1,4 @@
-import React, {MouseEvent, useCallback, useMemo, useRef, useState} from "react";
+import React, {MouseEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import styles from './Field.module.scss'
 import variables from './../../common/styles/variables.module.scss';
 import {v1} from "uuid";
@@ -60,6 +60,8 @@ export const Field: React.FC = React.memo(() => {
 
     // apex that is moving now without state
     const movingApex = useRef<string>('')
+    const movingApexOffsets = useRef({offsetX: 0, offsetY: 0})
+
 
     // selection login
     const [selectionStatus, setSelectionStatus] = useState(false)
@@ -81,7 +83,7 @@ export const Field: React.FC = React.memo(() => {
             })
         }
     }, [])
-    const [selectedElements, setSelectedElements] = useState<string[]>([])
+    const selectedApexes = useRef<string[]>([])
     const activeLineObj: undefined | { line: TLineProperties, startApexObj: TApexProperties, endApexObj: TApexProperties } = useMemo(() => {
         let activeLineObj = lines.find((line) => line.id === activeLine)
         let retObj: any = {}
@@ -103,6 +105,7 @@ export const Field: React.FC = React.memo(() => {
         }
         return retObj
     }, [activeLine, lines])
+    const isCtrlPressed = useRef(false)
 
     // callbacks
     const onDoubleClickHandler = useCallback((event: MouseEvent<SVGSVGElement>) => {
@@ -133,15 +136,40 @@ export const Field: React.FC = React.memo(() => {
         ])
     }, [apexes])
     const onMouseMoveHandler = useCallback((event: MouseEvent) => {
-        // filter apex by id then change its position
-        setApexes((apexes) => {
-            return apexes.map((outerApex) => {
-                    return outerApex.id === movingApex.current ?
-                        {...outerApex, cx: event.clientX, cy: event.clientY - controlPanelHeight} :
-                        outerApex
+        if (!selectedApexes.current.includes(movingApex.current)) {
+            setApexes((apexes) => {
+                return apexes.map((outerApex) => {
+                        return outerApex.id === movingApex.current ?
+                            {
+                                ...outerApex,
+                                cx: event.clientX + movingApexOffsets.current.offsetX,
+                                cy: (event.clientY - controlPanelHeight) + movingApexOffsets.current.offsetY,
+                            } :
+                            outerApex
+                    }
+                )
+            })
+        } else {
+            setApexes((apexes) => {
+                let movingApexObj = apexes.find((apex) => apex.id === movingApex.current)
+                if (movingApexObj) {
+                    let baseCoords = {cx: movingApexObj.cx, cy: movingApexObj.cy}
+                    let newApexes = apexes.map((apex) => {
+                        if (selectedApexes.current.includes(apex.id)) {
+                            return {
+                                ...apex,
+                                cx: event.clientX - (baseCoords.cx - apex.cx) + movingApexOffsets.current.offsetX,
+                                cy: event.clientY - controlPanelHeight - (baseCoords.cy - apex.cy) + movingApexOffsets.current.offsetY,
+                            }
+                        } else {
+                            return apex
+                        }
+                    })
+                    return newApexes
                 }
-            )
-        })
+                return apexes
+            })
+        }
     }, [])
     const updateApexLinks = useCallback((linkFromId: string, linkToId: string) => {
         setLines((lines) => {
@@ -201,28 +229,101 @@ export const Field: React.FC = React.memo(() => {
                 line)
         })
     }, [])
-    const redrawApex = useCallback((apexId: string) => {
+    const redrawApex = useCallback((apexId: string, below: boolean) => {
         setApexes((apexes) => {
             let apex = apexes.find((apex) => apex.id === apexId)
             if (apex) {
-                return [
-                    ...apexes.filter((apex) => apex.id !== apexId),
-                    {
-                        ...apex
-                    }
-                ]
+                if (below) {
+                    return [
+                        {
+                            ...apex
+                        },
+                        ...apexes.filter((apex) => apex.id !== apexId)
+                    ]
+                } else {
+                    return [
+                        ...apexes.filter((apex) => apex.id !== apexId),
+                        {
+                            ...apex
+                        }
+                    ]
+                }
+
             } else {
                 return apexes
             }
         })
     }, [])
+    const addApexToSelected = useCallback((apexId: string, isSelected: boolean) => {
+        if (isSelected) {
+            selectedApexes.current = selectedApexes.current.filter((apex) => apex !== apexId)
+        } else {
+            selectedApexes.current.push(apexId)
+        }
+        setApexes((apexes) => {
+            return [...apexes]
+        })
+    }, [])
+
+    const deleteSelectedApexes = useCallback(() => {
+        setApexes((apexes) => {
+            return apexes.filter((apex) => !selectedApexes.current.includes(apex.id))
+        })
+    }, [])
+    const copySelectedApexes = useCallback(() => {
+        setApexes((apexes) => {
+            let addApexes = apexes
+                .filter((apex) => selectedApexes.current.includes(apex.id))
+                .map((apex) => {
+                    return {
+                        ...apex,
+                        id: v1(),
+                        cx: apex.cx + 10,
+                        cy: apex.cy + 10,
+                    }
+                })
+            return [
+                ...apexes,
+                ...addApexes,
+            ]
+        })
+    }, [])
+    const onSvgKeyDownHandler = useCallback((event: KeyboardEvent) => {
+        if (event.key === 'Control') {
+            isCtrlPressed.current = true
+            return
+        } if (event.key === 'Delete') {
+            deleteSelectedApexes()
+        } else {
+            if (isCtrlPressed.current) {
+                if (event.key === 'v') {
+                    copySelectedApexes()
+                }
+            }
+        }
+    }, [copySelectedApexes])
+    const onSvgKeyUpHandler = useCallback((event) => {
+        if (event.key === 'Control') {
+            isCtrlPressed.current = false
+        }
+    }, [])
+
+    useEffect(() => {
+     return () => {
+         document.removeEventListener('keydown', onSvgKeyDownHandler)
+         document.removeEventListener('keydown', onSvgKeyUpHandler)
+     }
+    }, [onSvgKeyDownHandler, onSvgKeyUpHandler])
 
     return (
         <div className={styles.field}>
             <svg className={styles.svgField}
-                 // onClick={() => {
-                 //     if (!selectionStatus) setSelectedElements([])
-                 // }}
+                 ref={(node) => {
+                     if (node) {
+                         document.addEventListener('keydown', onSvgKeyDownHandler)
+                         document.addEventListener('keyup', onSvgKeyUpHandler)
+                     }
+                 }}
                  onDoubleClick={onDoubleClickHandler}
                  onWheel={(event) => {
                      let newApexes
@@ -262,19 +363,23 @@ export const Field: React.FC = React.memo(() => {
                              window?.getSelection()?.removeAllRanges();
                          }
                          let selectedElements = apexes.filter((apex) => {
-                            if (
-                                apex.cx - apex.style.widthDiv > cursorCurrentPosition.left &&
-                                apex.cx + apex.style.widthDiv < cursorCurrentPosition.left + cursorCurrentPosition.width &&
-                                apex.cy - apex.style.heightDiv > cursorCurrentPosition.top &&
-                                apex.cy + apex.style.heightDiv < cursorCurrentPosition.top + cursorCurrentPosition.height
-                            ) {
-                                return true
-                            } else {
-                                return false
-                            }
+                             if (
+                                 apex.cx - apex.style.widthDiv > cursorCurrentPosition.left &&
+                                 apex.cx + apex.style.widthDiv < cursorCurrentPosition.left + cursorCurrentPosition.width &&
+                                 apex.cy - apex.style.heightDiv > cursorCurrentPosition.top &&
+                                 apex.cy + apex.style.heightDiv < cursorCurrentPosition.top + cursorCurrentPosition.height
+                             ) {
+                                 return true
+                             } else {
+                                 return false
+                             }
                          }).map((apex) => apex.id)
-                         setSelectedElements(selectedElements)
+                         selectedApexes.current = selectedElements
                          setSelectionStatus(false)
+                     }
+                     else {
+                         selectedApexes.current = []
+                         setApexes([...apexes])
                      }
                  }}
             >
@@ -282,9 +387,10 @@ export const Field: React.FC = React.memo(() => {
                     apexes.map((apex, key) => {
                         return (
                             <Apex key={key}
-                                  isSelected={selectedElements.includes(apex.id)}
+                                  isSelected={selectedApexes.current.includes(apex.id)}
                                   redrawApex={redrawApex}
                                   movingApex={movingApex}
+                                  movingApexOffsets={movingApexOffsets}
                                   activeApex={activeApex}
                                   apex={apex}
                                   updateApexLinks={updateApexLinks}
@@ -292,6 +398,8 @@ export const Field: React.FC = React.memo(() => {
                                 //@ts-ignore
                                   onMouseMoveHandler={onMouseMoveHandler}
                                   setActiveApex={setActiveApex}
+                                  isCtrlPressed={isCtrlPressed}
+                                  addApexToSelected={addApexToSelected}
                             />
                         )
                     })
@@ -322,7 +430,7 @@ export const Field: React.FC = React.memo(() => {
                 activeApex ?
                     <EditBar apex={apexes.find((apex) => apex.id === activeApex) as TApexProperties}
                              deleteApexById={deleteApexById}
-                             updateApexStyles={updateApexStyles}/> :
+                             updateApexStyles={updateApexStyles} redrawApex={redrawApex}/> :
                     activeLine && activeLineObj ?
                         <LineEditBar line={activeLineObj.line}
                                      changeLineStyles={changeLineStyles}
