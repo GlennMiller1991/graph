@@ -1,11 +1,11 @@
 import React, {useCallback, useRef, useState} from 'react'
 import styles from "../Field.module.scss";
-import {controlPanelHeight, TApexProperties} from "../Field";
+import {controlPanelHeight, TApexProperties, TPoint} from "../Field";
+import {getPointOfRectByAngle} from "../../../utils/geometry";
 
-type TMoveStatus = false | true
 type TApexProps = {
     apex: TApexProperties,
-    activeApex: string,
+    activeApexObj: TApexProperties,
     movingApex: {
         current: string
     },
@@ -16,7 +16,7 @@ type TApexProps = {
         }
     },
     setActiveApex: (apexId: string) => void,
-    updateApexLinks: (linkFromId: string, linkToId: string) => void,
+    updateApexLinks: (linkFromId: string, linkToId: string, points: TPoint[]) => void,
     onMouseMoveHandler: (event: MouseEvent) => void,
     isSelected: boolean,
     isCtrlPressed: {
@@ -27,7 +27,7 @@ type TApexProps = {
 
 export const Apex: React.FC<TApexProps> = React.memo(({
                                                           apex,
-                                                          activeApex,
+                                                          activeApexObj,
                                                           movingApex,
                                                           setActiveApex,
                                                           updateApexLinks,
@@ -38,7 +38,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           addApexToSelected,
                                                       }) => {
 
-    const [moveStatus, setMoveStatus] = useState<TMoveStatus>(false)
+    const [moveStatus, setMoveStatus] = useState(false)
 
     const apexPosition = useRef({cx: 0, cy: 0})
 
@@ -94,10 +94,10 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   }}
                   onDoubleClick={(event) => {
                       event.stopPropagation()
-                      if (!activeApex) {
+                      if (!activeApexObj.id) {
                           setActiveApex(apex.id)
                       } else {
-                          if (activeApex === apex.id) {
+                          if (activeApexObj.id === apex.id) {
                               setActiveApex('')
                           }
                       }
@@ -108,8 +108,18 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                           addApexToSelected(apex.id, isSelected)
                       } else {
                           if (!isSelected) {
-                              if (activeApex && activeApex !== apex.id) {
-                                  updateApexLinks(activeApex, apex.id)
+                              let points = [
+                                  getPointOfRectByAngle(90, activeApexObj.style.widthDiv, activeApexObj.style.heightDiv),
+                                  getPointOfRectByAngle(90, activeApexObj.style.widthDiv + 100, activeApexObj.style.heightDiv + 100),
+                                  getPointOfRectByAngle(-90, apex.style.widthDiv + 100, apex.style.heightDiv + 100),
+                                  getPointOfRectByAngle(-90, apex.style.widthDiv, apex.style.heightDiv),
+                              ]
+                              if (activeApexObj.id && activeApexObj.id !== apex.id) {
+                                  updateApexLinks(
+                                      activeApexObj.id,
+                                      apex.id,
+                                      points,
+                                  )
                               }
                           }
                       }

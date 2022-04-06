@@ -10,6 +10,16 @@ import {LineEditBar} from "./LineEditBar/LineEditBar";
 export const controlPanelHeight = +variables.controlPanelHeight.slice(0, -2)
 
 export type TLink = string
+export type TPoint = {
+    cx: number,
+    cy: number,
+}
+export type TPoints = {
+    first: TPoint,
+    second: TPoint,
+    penultimate: TPoint,
+    last: TPoint,
+}
 export type TApexProperties = {
     id: string,
     r: number,
@@ -41,10 +51,33 @@ export type TLineProperties = {
 export type TLineStyle = {
     startAngle: number,
     endAngle: number,
+    points: TPoints,
     color: string,
     width: number,
     dash: number,
     animationDuration: number,
+}
+
+const fakeApex: TApexProperties = {
+    cx: 0,
+    cy: 0,
+    id: '',
+    r: 0,
+    links: [],
+    style: {
+        widthDiv: 0,
+        nameHeight: 0,
+        backgroundColor: 'red',
+        borderColor: 'red',
+        borderRadius: 0,
+        borderWidth: 0,
+        fontSize: 0,
+        header: '',
+        heightDiv: 0,
+        heightOffset: 0,
+        opacity: 0,
+        widthOffset: 0,
+    }
 }
 
 export const Field: React.FC = React.memo(() => {
@@ -57,6 +90,15 @@ export const Field: React.FC = React.memo(() => {
     // active edit apex and line
     const [activeApex, setActiveApex] = useState<string>('')
     const [activeLine, setActiveLine] = useState<string>('')
+    const activeApexObj = useMemo(() => {
+        if (activeApex) {
+            let activeApexObj = apexes.find((apex) => apex.id === activeApex)
+            if (activeApexObj) {
+                return activeApexObj
+            }
+        }
+            return fakeApex
+    }, [activeApex])
 
     // apex that is moving now without state
     const movingApex = useRef<string>('')
@@ -171,7 +213,7 @@ export const Field: React.FC = React.memo(() => {
             })
         }
     }, [])
-    const updateApexLinks = useCallback((linkFromId: string, linkToId: string) => {
+    const updateApexLinks = useCallback((linkFromId: string, linkToId: string, points: TPoint[]) => {
         setLines((lines) => {
             let lineIndex = lines.findIndex((line) => line.start === linkFromId && line.end === linkToId)
             if (lineIndex === -1) {
@@ -184,6 +226,12 @@ export const Field: React.FC = React.memo(() => {
                         style: {
                             startAngle: 90,
                             endAngle: -90,
+                            points: {
+                                first: points[0],
+                                second: points[1],
+                                penultimate: points[2],
+                                last: points[3],
+                            },
                             color: '#9b7d7d',
                             width: 1,
                             dash: 0,
@@ -264,7 +312,6 @@ export const Field: React.FC = React.memo(() => {
             return [...apexes]
         })
     }, [])
-
     const deleteSelectedApexes = useCallback(() => {
         setApexes((apexes) => {
             return apexes.filter((apex) => !selectedApexes.current.includes(apex.id))
@@ -306,6 +353,23 @@ export const Field: React.FC = React.memo(() => {
         if (event.key === 'Control') {
             isCtrlPressed.current = false
         }
+    }, [])
+    const updateLinePoints = useCallback((lineId: string, point: Partial<TPoints>) => {
+        setLines((lines) => {
+            return lines.map((line) => line.id === lineId ?
+                {
+                    ...line,
+                    style: {
+                        ...line.style,
+                        points: {
+                            ...line.style.points,
+                            ...point,
+                        }
+                    }
+                } :
+                line
+            )
+        })
     }, [])
 
     useEffect(() => {
@@ -359,9 +423,6 @@ export const Field: React.FC = React.memo(() => {
                      //@ts-ignore
                      document.removeEventListener('mousemove', onSelectionHandler)
                      if (selectionStatus) {
-                         if (window.getSelection) {
-                             window?.getSelection()?.removeAllRanges();
-                         }
                          let selectedElements = apexes.filter((apex) => {
                              if (
                                  apex.cx - apex.style.widthDiv > cursorCurrentPosition.left &&
@@ -391,7 +452,7 @@ export const Field: React.FC = React.memo(() => {
                                   redrawApex={redrawApex}
                                   movingApex={movingApex}
                                   movingApexOffsets={movingApexOffsets}
-                                  activeApex={activeApex}
+                                  activeApexObj={activeApexObj}
                                   apex={apex}
                                   updateApexLinks={updateApexLinks}
                                   deleteApexById={deleteApexById}
@@ -412,6 +473,7 @@ export const Field: React.FC = React.memo(() => {
                             return (
                                 <ApexLink lineId={line.id}
                                           style={line.style}
+                                          updateLinePoints={updateLinePoints}
                                           key={key}
                                           startApex={startApex}
                                           endApex={endApex}
