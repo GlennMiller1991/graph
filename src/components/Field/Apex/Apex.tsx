@@ -150,7 +150,6 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                       if (node) {
                           if (activeApexObj.id === apex.id) {
                               let {left, right, top, bottom, ...rest} = node.getBoundingClientRect()
-                              console.log(left, right, top, bottom)
                           }
                       }
                   }}

@@ -84,7 +84,6 @@ export const Field: React.FC = React.memo(() => {
     // current apexes and lines on the svg
     const [apexes, setApexes] = useState<TApexProperties[]>([])
     const [lines, setLines] = useState<TLineProperties[]>([])
-    console.log(apexes, lines)
 
     // active edit apex and line
     const [activeApex, setActiveApex] = useState<string>('')
@@ -177,7 +176,6 @@ export const Field: React.FC = React.memo(() => {
         ])
     }, [apexes])
     const onMouseMoveHandler = useCallback((event: MouseEvent) => {
-        console.log('hello')
         if (!selectedApexes.current.includes(movingApex.current)) {
             setApexes((apexes) => {
                 return apexes.map((outerApex) => {
