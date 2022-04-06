@@ -261,7 +261,25 @@ export const Field: React.FC = React.memo(() => {
     }, [])
     const updateApexStyles = useCallback((apexId: string, apexStyles: Partial<TApexStyle>) => {
         setApexes((apexes) => {
-            return apexes.map((apex) => apex.id === apexId ? {...apex, style: {...apex.style, ...apexStyles}} : apex)
+            return apexes.map((apex) => {
+                if (apex.id === apexId) {
+                    let newApex = {
+                        ...apex,
+                        style: {
+                            ...apex.style,
+                            ...apexStyles
+                        }
+                    }
+
+                    if (newApex.style.borderRadius > newApex.style.widthDiv) {
+                        newApex.style.borderRadius = newApex.style.widthDiv
+                    }
+                    if (newApex.style.borderRadius > newApex.style.heightDiv) {
+                        newApex.style.borderRadius = newApex.style.heightDiv
+                    }
+                    return newApex
+                } else return apex
+            })
         })
     }, [])
     const changeLineStyles = useCallback((lineId: string, lineStyles: Partial<TLineStyle>) => {
@@ -313,6 +331,7 @@ export const Field: React.FC = React.memo(() => {
         })
     }, [])
     const deleteSelectedApexes = useCallback(() => {
+        setActiveApex('')
         setApexes((apexes) => {
             return apexes.filter((apex) => !selectedApexes.current.includes(apex.id))
         })
@@ -464,6 +483,7 @@ export const Field: React.FC = React.memo(() => {
                                   setActiveApex={setActiveApex}
                                   isCtrlPressed={isCtrlPressed}
                                   addApexToSelected={addApexToSelected}
+                                  updateApexStyles={updateApexStyles}
                             />
                         )
                     })

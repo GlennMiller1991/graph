@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react'
 import styles from "../Field.module.scss";
-import {controlPanelHeight, TApexProperties, TPoint} from "../Field";
+import {controlPanelHeight, TApexProperties, TApexStyle, TPoint} from "../Field";
 import {getPointOfRectByAngle} from "../../../utils/geometry";
 
 type TApexProps = {
@@ -23,6 +23,7 @@ type TApexProps = {
         current: boolean,
     },
     addApexToSelected: (apexId: string, isSelected: boolean) => void,
+    updateApexStyles: (apexId: string, styles: Partial<TApexStyle>) => void,
 }
 
 export const Apex: React.FC<TApexProps> = React.memo(({
@@ -36,13 +37,29 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                           movingApexOffsets,
                                                           isCtrlPressed,
                                                           addApexToSelected,
+                                                          updateApexStyles,
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState(false)
 
     const apexPosition = useRef({cx: 0, cy: 0})
+    const pointPosition = useRef({cx: 0, cy: 0})
 
-
+    const onPointMoveHandler = useCallback((event: MouseEvent) => {
+        event.stopPropagation()
+        if (Math.abs(event.clientX - pointPosition.current.cx) > 5 ||
+            Math.abs(event.clientY - controlPanelHeight - apexPosition.current.cy) > 5) {
+            pointPosition.current.cx = -100
+            pointPosition.current.cy = -100
+            let widthDiv = Math.abs(event.clientX - apex.cx)
+            let heightDiv = Math.abs(event.clientY - controlPanelHeight - apex.cy)
+            let newStyles = {
+                widthDiv,
+                heightDiv,
+            }
+            updateApexStyles(apex.id, newStyles)
+        }
+    }, [apex.id, updateApexStyles, apex.cx, apex.cy])
     const mouseMoveHandler = useCallback((event: MouseEvent) => {
         event.stopPropagation()
         if (Math.abs(event.clientX - apexPosition.current.cx + movingApexOffsets.current.offsetX) > 20 ||
@@ -131,6 +148,92 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   fontSize={apex.style.fontSize}>
                 {apex.style.header}
             </text>
+            {
+                activeApexObj.id === apex.id &&
+                <g>
+                    <path
+                        stroke={'blue'}
+                        opacity={.5}
+                        strokeWidth={1}
+                        strokeDasharray={5}
+                        fill={'none'}
+                        d={`
+                            M${apex.cx - apex.style.widthDiv - 5} ${apex.cy - apex.style.heightDiv - 5}
+                            l${apex.style.widthDiv * 2 + 10} 0
+                            l0 ${apex.style.heightDiv * 2 + 10}
+                            l${-(apex.style.widthDiv * 2 + 10)} 0z
+                        `}
+                    />
+                    <circle fill={'blue'}
+                            opacity={.5}
+                            r={10}
+                            cx={apex.cx - apex.style.widthDiv - 5}
+                            cy={apex.cy - apex.style.heightDiv - 5}
+                            onMouseDown={(event) => {
+                                event.stopPropagation()
+                                pointPosition.current.cx = apex.cx
+                                pointPosition.current.cy = apex.cy
+                                //@ts-ignore
+                                document.addEventListener('mousemove', onPointMoveHandler)
+                            }}
+                            onMouseUp={(event) => {
+                                event.stopPropagation()
+                                document.removeEventListener('mousemove', onPointMoveHandler)
+                            }}
+                    />
+                    <circle fill={'blue'}
+                            opacity={.5}
+                            r={10}
+                            cx={apex.cx + apex.style.widthDiv + 5}
+                            cy={apex.cy - apex.style.heightDiv - 5}
+                            onMouseDown={(event) => {
+                                event.stopPropagation()
+                                pointPosition.current.cx = apex.cx
+                                pointPosition.current.cy = apex.cy
+                                //@ts-ignore
+                                document.addEventListener('mousemove', onPointMoveHandler)
+                            }}
+                            onMouseUp={(event) => {
+                                event.stopPropagation()
+                                document.removeEventListener('mousemove', onPointMoveHandler)
+                            }}
+                    />
+                    <circle fill={'blue'}
+                            opacity={.5}
+                            r={10}
+                            cx={apex.cx + apex.style.widthDiv + 5}
+                            cy={apex.cy + apex.style.heightDiv + 5}
+                            onMouseDown={(event) => {
+                                event.stopPropagation()
+                                pointPosition.current.cx = apex.cx
+                                pointPosition.current.cy = apex.cy
+                                //@ts-ignore
+                                document.addEventListener('mousemove', onPointMoveHandler)
+                            }}
+                            onMouseUp={(event) => {
+                                event.stopPropagation()
+                                document.removeEventListener('mousemove', onPointMoveHandler)
+                            }}
+                    />
+                    <circle fill={'blue'}
+                            opacity={.5}
+                            r={10}
+                            cx={apex.cx - apex.style.widthDiv - 5}
+                            cy={apex.cy + apex.style.heightDiv + 5}
+                            onMouseDown={(event) => {
+                                event.stopPropagation()
+                                pointPosition.current.cx = apex.cx
+                                pointPosition.current.cy = apex.cy
+                                //@ts-ignore
+                                document.addEventListener('mousemove', onPointMoveHandler)
+                            }}
+                            onMouseUp={(event) => {
+                                event.stopPropagation()
+                                document.removeEventListener('mousemove', onPointMoveHandler)
+                            }}
+                    />
+                </g>
+            }
         </g>
     )
 })

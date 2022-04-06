@@ -109,28 +109,6 @@ export const EditBar: React.FC<TEditBarProps> = React.memo(({
             </div>
             <div style={{borderBottom: '1px solid black', width: '80%'}}/>
             <div className={styles.changeR}>
-                <input type={"range"} max={100} min={5} step={1} data-property={'widthDiv'} value={apex.style.widthDiv}
-                       onChange={(event) => {
-                           let newValue = +event.currentTarget.value
-                           let newStyles = {
-                               [event.currentTarget.dataset.property as string]: newValue
-                           }
-                           if (newValue < apex.style.borderRadius) {
-                               newStyles.borderRadius = newValue
-                           }
-                           updateApexStyles(apex.id, newStyles)
-                       }}/>
-                <input type={"range"} max={50} min={5} step={1} data-property={'heightDiv'} value={apex.style.heightDiv}
-                       onChange={(event) => {
-                           let newValue = +event.currentTarget.value
-                           let newStyles = {
-                               [event.currentTarget.dataset.property as string]: newValue
-                           }
-                           if (newValue < apex.style.borderRadius) {
-                               newStyles.borderRadius = newValue
-                           }
-                           updateApexStyles(apex.id, newStyles)
-                       }}/>
                 <input type={"range"}
                        max={apex.style.widthDiv < +apex.style.heightDiv ? apex.style.widthDiv : apex.style.heightDiv}
                        min={0}
