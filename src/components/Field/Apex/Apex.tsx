@@ -41,6 +41,7 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                                                       }) => {
 
     const [moveStatus, setMoveStatus] = useState(false)
+    const [textSize, setTextSize] = useState({left: -100, top: -100, right: -100, bottom: -100})
 
     const apexPosition = useRef({cx: 0, cy: 0})
     const pointPosition = useRef({cx: 0, cy: 0})
@@ -144,7 +145,16 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   x={apex.cx + apex.style.widthOffset}
                   y={apex.cy + apex.style.heightOffset + apex.style.fontSize / 2}
                   textAnchor={'middle'}
-                  fontSize={apex.style.fontSize}>
+                  fontSize={apex.style.fontSize}
+                  ref={(node) => {
+                      if (node) {
+                          if (activeApexObj.id === apex.id) {
+                              let {left, right, top, bottom, ...rest} = node.getBoundingClientRect()
+                              console.log(left, right, top, bottom)
+                          }
+                      }
+                  }}
+            >
                 {apex.style.header}
             </text>
             {
