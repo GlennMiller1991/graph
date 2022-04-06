@@ -52,3 +52,11 @@ export function getPointOfRectByAngle(angle: number, halfWidth: number, halfHeig
     }
     return point
 }
+
+export const getAngleByPoint = (cx: number, cy: number, x: number, y: number) => {
+    let dy = y - cy
+    let dx = x - cx
+    let theta = Math.atan2(dy, dx)
+    theta *= 180 / Math.PI
+    return theta;
+}

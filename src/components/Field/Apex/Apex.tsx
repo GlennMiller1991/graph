@@ -126,10 +126,8 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                       } else {
                           if (!isSelected) {
                               let points = [
-                                  getPointOfRectByAngle(90, activeApexObj.style.widthDiv, activeApexObj.style.heightDiv),
                                   getPointOfRectByAngle(90, activeApexObj.style.widthDiv + 100, activeApexObj.style.heightDiv + 100),
                                   getPointOfRectByAngle(-90, apex.style.widthDiv + 100, apex.style.heightDiv + 100),
-                                  getPointOfRectByAngle(-90, apex.style.widthDiv, apex.style.heightDiv),
                               ]
                               if (activeApexObj.id && activeApexObj.id !== apex.id) {
                                   updateApexLinks(

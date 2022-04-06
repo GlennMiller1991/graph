@@ -1,7 +1,7 @@
-import React, {useCallback, useRef, useState, MouseEvent} from "react";
+import React, {useCallback, useRef, useState, MouseEvent, useMemo} from "react";
 import styles from "./ApexLink.module.scss";
 import {controlPanelHeight, TApexProperties, TLineStyle, TPoints} from "../Field";
-import {getPointOfRectByAngle} from "../../../utils/geometry";
+import {getAngleByPoint, getPointOfRectByAngle} from "../../../utils/geometry";
 
 type TApexLink = {
     lineId: string,
@@ -11,6 +11,7 @@ type TApexLink = {
     setActiveLine: (lineId: string) => void,
     style: TLineStyle,
     updateLinePoints: (lineId: string, point: Partial<TPoints>) => void,
+    changeLineStyles: (lineId: string, lineStyles: Partial<TLineStyle>) => void,
 }
 export const ApexLink: React.FC<TApexLink> = React.memo(({
                                                              lineId,
@@ -20,9 +21,9 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                                                              setActiveLine,
                                                              style,
                                                              updateLinePoints,
+                                                             changeLineStyles,
                                                          }) => {
 
-    const [moveStatus, setMoveStatus] = useState(false)
     const pointPosition = useRef({cx: 0, cy: 0})
 
     const mouseMoveHandlerFirst = useCallback((event: MouseEvent) => {
@@ -31,40 +32,13 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
             Math.abs(event.clientY - controlPanelHeight - pointPosition.current.cy) > 5) {
             pointPosition.current.cx = -100
             pointPosition.current.cy = -100
-            let clientX = event.clientX
-            let widthDiv = startApex.style.widthDiv
-            let clientY = event.clientY - controlPanelHeight
-            let heightDiv = startApex.style.heightDiv
-            let cx =
-                clientX >= startApex.cx - widthDiv &&
-                clientX <= startApex.cx + widthDiv ?
-                    clientX - startApex.cx
-                    :
-                    clientX - startApex.cx >= 0 ?
-                        widthDiv :
-                        -widthDiv
-
-            let
-                cy =
-                    clientY >= startApex.cy - heightDiv &&
-                    clientY <= startApex.cy + heightDiv ?
-                        clientY - startApex.cy
-                        :
-                        clientY - startApex.cy >= 0 ?
-                            heightDiv :
-                            -heightDiv
-            updateLinePoints(
-                lineId,
-                {
-                    first: {
-                        cx,
-                        cy,
-                    }
-                }
-            )
-            setMoveStatus(true)
+            let startAngle = getAngleByPoint(startApex.cx, startApex.cy, event.clientX, event.clientY - controlPanelHeight)
+            changeLineStyles(lineId, {startAngle})
         }
-    }, [lineId, updateLinePoints, startApex])
+    }, [lineId, changeLineStyles, startApex])
+    const lineStartPoint = useMemo(() => {
+        return getPointOfRectByAngle(style.startAngle, startApex.style.widthDiv, startApex.style.heightDiv)
+    }, [style.startAngle, startApex.style.widthDiv, startApex.style.heightDiv])
     const mouseMoveHandlerSecond = useCallback((event: MouseEvent) => {
         event.stopPropagation()
         if (Math.abs(event.clientX - pointPosition.current.cx) > 5 ||
@@ -80,7 +54,6 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                     }
                 }
             )
-            setMoveStatus(true)
         }
     }, [lineId, updateLinePoints, startApex.cx, startApex.cy])
     const mouseMoveHandlerPenultimate = useCallback((event: MouseEvent) => {
@@ -98,7 +71,6 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                     }
                 }
             )
-            setMoveStatus(true)
         }
     }, [lineId, updateLinePoints, endApex.cx, endApex.cy])
     const mouseMoveHandlerLast = useCallback((event: MouseEvent) => {
@@ -107,40 +79,13 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
             Math.abs(event.clientY - controlPanelHeight - pointPosition.current.cy) > 5) {
             pointPosition.current.cx = -100
             pointPosition.current.cy = -100
-            let clientX = event.clientX
-            let widthDiv = endApex.style.widthDiv
-            let clientY = event.clientY - controlPanelHeight
-            let heightDiv = endApex.style.heightDiv
-            let cx =
-                clientX >= endApex.cx - widthDiv &&
-                clientX <= endApex.cx + widthDiv ?
-                    clientX - endApex.cx
-                    :
-                    clientX - endApex.cx >= 0 ?
-                        widthDiv :
-                        -widthDiv
-
-            let
-                cy =
-                    clientY >= endApex.cy - heightDiv &&
-                    clientY <= endApex.cy + heightDiv ?
-                        clientY - endApex.cy
-                        :
-                        clientY - endApex.cy >= 0 ?
-                            heightDiv :
-                            -heightDiv
-            updateLinePoints(
-                lineId,
-                {
-                    last: {
-                        cx,
-                        cy,
-                    }
-                }
-            )
-            setMoveStatus(true)
+            let endAngle = getAngleByPoint(endApex.cx, endApex.cy, event.clientX, event.clientY - controlPanelHeight)
+            changeLineStyles(lineId, {endAngle})
         }
-    }, [lineId, updateLinePoints, endApex])
+    }, [lineId, changeLineStyles, endApex])
+    const lineEndPoint = useMemo(() => {
+        return getPointOfRectByAngle(style.endAngle, endApex.style.widthDiv, endApex.style.heightDiv)
+    }, [style.endAngle, endApex.style.widthDiv, endApex.style.heightDiv])
 
     return (
         <>
@@ -151,10 +96,10 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                   strokeDasharray={style.dash}
                   style={{animationDuration: `${style.animationDuration}s`}}
                   d={`
-                     M${startApex.cx + style.points.first.cx} ${startApex.cy + style.points.first.cy}
+                     M${startApex.cx + lineStartPoint.cx} ${startApex.cy + lineStartPoint.cy}
                      C${startApex.cx + style.points.second.cx} ${startApex.cy + style.points.second.cy},
                      ${endApex.cx + style.points.penultimate.cx} ${endApex.cy + style.points.penultimate.cy},
-                     ${endApex.cx + style.points.last.cx} ${endApex.cy + style.points.last.cy}
+                     ${endApex.cx + lineEndPoint.cx} ${endApex.cy + lineEndPoint.cy}
                      `}
                   onDoubleClick={(event) => {
                       event.stopPropagation()
@@ -170,8 +115,8 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
             {
                 activeLine === lineId &&
                 <>
-                    <circle cx={startApex.cx + style.points.first.cx}
-                            cy={startApex.cy + style.points.first.cy}
+                    <circle cx={startApex.cx + lineStartPoint.cx}
+                            cy={startApex.cy + lineStartPoint.cy}
                             r={5}
                             fill={'blue'}
                             opacity={.5}
@@ -184,9 +129,6 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                             }}
                             onMouseUp={(event: MouseEvent<SVGCircleElement>) => {
                                 event.stopPropagation()
-                                if (moveStatus) {
-                                    setMoveStatus(false)
-                                }
                                 //@ts-ignore
                                 document.removeEventListener('mousemove', mouseMoveHandlerFirst)
                             }}
@@ -205,9 +147,6 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                             }}
                             onMouseUp={(event: MouseEvent<SVGCircleElement>) => {
                                 event.stopPropagation()
-                                if (moveStatus) {
-                                    setMoveStatus(false)
-                                }
                                 //@ts-ignore
                                 document.removeEventListener('mousemove', mouseMoveHandlerSecond)
                             }}
@@ -227,14 +166,11 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                             }
                             onMouseUp={(event: MouseEvent<SVGCircleElement>) => {
                                 event.stopPropagation()
-                                if (moveStatus) {
-                                    setMoveStatus(false)
-                                }
                                 //@ts-ignore
                                 document.removeEventListener('mousemove', mouseMoveHandlerPenultimate)
                             }}/>
-                    <circle cx={endApex.cx + style.points.last.cx}
-                            cy={endApex.cy + style.points.last.cy}
+                    <circle cx={endApex.cx + lineEndPoint.cx}
+                            cy={endApex.cy + lineEndPoint.cy}
                             r={5}
                             fill={'blue'}
                             opacity={.5}
@@ -247,9 +183,6 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                             }}
                             onMouseUp={(event: MouseEvent<SVGCircleElement>) => {
                                 event.stopPropagation()
-                                if (moveStatus) {
-                                    setMoveStatus(false)
-                                }
                                 //@ts-ignore
                                 document.removeEventListener('mousemove', mouseMoveHandlerLast)
                             }}/>
@@ -259,10 +192,10 @@ export const ApexLink: React.FC<TApexLink> = React.memo(({
                           opacity={.5}
                           style={{pointerEvents: 'none'}}
                           d={`
-                     M${startApex.cx + style.points.first.cx} ${startApex.cy + style.points.first.cy}
+                     M${startApex.cx + lineStartPoint.cx} ${startApex.cy + lineStartPoint.cy}
                      L${startApex.cx + style.points.second.cx} ${startApex.cy + style.points.second.cy}
                      L${endApex.cx + style.points.penultimate.cx} ${endApex.cy + style.points.penultimate.cy}
-                     L${endApex.cx + style.points.last.cx} ${endApex.cy + style.points.last.cy}
+                     L${endApex.cx + lineEndPoint.cx} ${endApex.cy + lineEndPoint.cy}
                      `}/>
                 </>
             }

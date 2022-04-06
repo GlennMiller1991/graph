@@ -15,10 +15,8 @@ export type TPoint = {
     cy: number,
 }
 export type TPoints = {
-    first: TPoint,
     second: TPoint,
     penultimate: TPoint,
-    last: TPoint,
 }
 export type TApexProperties = {
     id: string,
@@ -227,10 +225,8 @@ export const Field: React.FC = React.memo(() => {
                             startAngle: 90,
                             endAngle: -90,
                             points: {
-                                first: points[0],
-                                second: points[1],
-                                penultimate: points[2],
-                                last: points[3],
+                                second: points[0],
+                                penultimate: points[1],
                             },
                             color: '#9b7d7d',
                             width: 1,
@@ -339,7 +335,7 @@ export const Field: React.FC = React.memo(() => {
             return lines.filter((line) => !selectedApexes.current.includes(line.start) && !selectedApexes.current.includes(line.end))
         })
     }, [])
-    const copySelectedApexes = useCallback(() => {
+    const copySelectedApexes =  useCallback(() => {
         setApexes((apexes) => {
             let addApexes = apexes
                 .filter((apex) => selectedApexes.current.includes(apex.id))
@@ -501,7 +497,8 @@ export const Field: React.FC = React.memo(() => {
                                           startApex={startApex}
                                           endApex={endApex}
                                           activeLine={activeLine}
-                                          setActiveLine={setActiveLine}/>
+                                          setActiveLine={setActiveLine}
+                                changeLineStyles={changeLineStyles}/>
                             )
                         } else {
                             deleteApexLink(line.id)
