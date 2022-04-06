@@ -143,8 +143,9 @@ export const Apex: React.FC<TApexProps> = React.memo(({
                   }}
             />
             <text className={styles.svgText}
-                  x={apex.cx - apex.style.widthDiv + apex.style.borderRadius + apex.style.widthOffset}
-                  y={apex.cy - apex.style.heightDiv + apex.style.borderRadius + apex.style.heightOffset}
+                  x={apex.cx + apex.style.widthOffset}
+                  y={apex.cy + apex.style.heightOffset}
+                  textAnchor={'center'}
                   fontSize={apex.style.fontSize}>
                 {apex.style.header}
             </text>
