@@ -316,6 +316,9 @@ export const Field: React.FC = React.memo(() => {
         setApexes((apexes) => {
             return apexes.filter((apex) => !selectedApexes.current.includes(apex.id))
         })
+        setLines((lines) => {
+            return lines.filter((line) => !selectedApexes.current.includes(line.start) && !selectedApexes.current.includes(line.end))
+        })
     }, [])
     const copySelectedApexes = useCallback(() => {
         setApexes((apexes) => {
